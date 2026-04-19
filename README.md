@@ -212,15 +212,12 @@ rules_version = '2'; service cloud.firestore { match /databases/{database}/docum
 
 ## **6.1 Supported Banks & Wallets**
 
-| **Bank / Wallet** | **Sample SMS Pattern**                | **Amount Pattern** |
-| ----------------- | ------------------------------------- | ------------------ |
-| **eSewa**         | "Rs. 500 debited from eSewa"          | Rs. {amount}       |
-| **Khalti**        | "Payment of NPR 300 successful"       | NPR {amount}       |
-| **NIC Asia**      | "A/C XX1234 debited NPR 1,500"        | NPR {amount}       |
-| **Nabil Bank**    | "NPR 2000 has been debited"           | NPR {amount}       |
-| **Global IME**    | "a/c debited by NPR 3,200"            | NPR {amount}       |
-| **Prabhu Bank**   | "debited NPR 500 from your account"   | NPR {amount}       |
-| **Laxmi Sunrise** | "credited NPR 10,000 to your account" | NPR {amount}       |
+| **Bank**  | **Sample SMS Pattern**                                                | **Amount Pattern**   |
+| --------- | --------------------------------------------------------------------- | -------------------- |
+| **NIMB**  | "AC#050XX2057 Dr by NPR 2500 on 01Dec25" / "Cr by NPR 1600"           | Dr/Cr → debit/credit |
+| **NIC**   | "Your 024###32001 has been Credited by NPR 1,013.45 on 14/04/2026"    | Credited/Debited     |
+| **ADB**   | "NPR 15,000.00 deposited on 25/03/2026" / "withdrawn on 26/03/2026"   | deposited/withdrawn  |
+| **Nabil** | "deposited by NPR 1,500.00 on 06/04/2026" / "withdrawn by NPR 120.00" | deposited/withdrawn  |
 
 ## **6.2 How the Parser Works**
 

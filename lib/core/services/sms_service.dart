@@ -259,6 +259,7 @@ class SmsService {
     // More flexible amount patterns for Nepali SMS
     final amountPatterns = [
       RegExp(r'NPR\s*([\d,]+(?:\.\d+)?)', caseSensitive: false),
+      RegExp(r'NRP\s*([\d,]+(?:\.\d+)?)', caseSensitive: false),
       RegExp(r'NPR\s*([\d,]+)', caseSensitive: false),
       RegExp(r'rs\.?\s*([\d,]+(?:\.\d+)?)', caseSensitive: false),
       RegExp(r'deposited[:\s]*npr\s*([\d,]+)', caseSensitive: false),
@@ -362,6 +363,11 @@ class SmsService {
       description = '$senderName - ATM';
     } else if (lowerBody.contains('nic asia') ||
         lowerSender.contains('nic asia')) {
+      category = type == TransactionType.credit
+          ? 'Salary / Income'
+          : 'Remittance / Transfer';
+      description = remarks.isNotEmpty ? '$senderName - $remarks' : senderName;
+    } else if (lowerBody.contains('nabil') || lowerSender.contains('nabil')) {
       category = type == TransactionType.credit
           ? 'Salary / Income'
           : 'Remittance / Transfer';
