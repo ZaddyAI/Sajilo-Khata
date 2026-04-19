@@ -281,17 +281,6 @@ The Categorizer utility in core/utils/categorizer.dart maps keywords in transact
 - Day 13: Push notifications - transaction logged, goal achieved
 - Day 14: CSV export, testing, bug fixes, README
 
-# **10\. Portfolio Talking Points**
-
-When presenting this project to hirers, highlight:
-
-- SMS parsing pipeline - regex, multi-bank support, graceful fallback
-- Offline-first architecture - Hive cache + Firestore sync
-- BLoC state management - scalable, testable, production patterns
-- Cross-platform considerations - Android SMS vs iOS manual
-- Real-world utility - solves a genuine pain point for Nepali users
-- Nepali Calendar Kit integration - your own published package
-- Savings goal smart calculation - daily savings target algorithm
 
 This project demonstrates: advanced Flutter patterns, Firebase integration, background services, data parsing, chart rendering, and local/remote sync - all in a single coherent product targeting a real market gap.
 
