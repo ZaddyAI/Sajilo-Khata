@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "437548364812",
+    "project_id": "sajilokhata-102c9",
+    "storage_bucket": "sajilokhata-102c9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437548364812:android:4b0b8b29c63b06e31aaa29",
+        "android_client_info": {
+          "package_name": "com.example.sajilo_khata"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437548364812-7b9qdrrg810qvcst2fdoj4iuc57blltt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sajilo_khata",
+            "certificate_hash": "10843ca3bc6b1dedecb8a7c38805aaa9f39bd669"
+          }
+        },
+        {
+          "client_id": "437548364812-gr0i8oigkuesqi5di6mp4trhsu8nebe0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhmMPyL8XFKaXCsFO_jL4KwRZYsndh8Xo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437548364812-gr0i8oigkuesqi5di6mp4trhsu8nebe0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "437548364812-svkpcvbvmn1osm50jh1lmo1t5el0e9jk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sajiloKhata"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
