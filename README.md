@@ -12,19 +12,18 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 
 ## **1.0 Screenshots**
 
-| Login | Dashboard | Ledger |
-| ----- | --------- | ------ |
+| Login                                                   | Dashboard                                                        | Ledger                                                       |
+| ------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
 | <img src="screenshots/auth/loginPage.png" width="150"/> | <img src="screenshots/dashboard/mainDashboard.png" width="150"/> | <img src="screenshots/ledger/ledgerScreen.png" width="150"/> |
 
-| Add Transaction | Goals | Goal Details |
-| --------------- | ----- | ------------ |
-| <img src="screenshots/ledger/addLedger.png" width="150"/> | <img src="screenshots/goals/goalScreen.png" width="150"/> | <img src="screenshots/goals/goalDetails.png" width="150"/> | Users can also add transactions manually. All data is stored in Firebase Firestore and syncs across devices on login. A savings goals feature lets users set targets (e.g. "Rs. 80,000 for a laptop by Dashain") and track progress over time.
+| Add Transaction                                           | Goals                                                     | Goal Details                                               |
+| --------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="screenshots/ledger/addLedger.png" width="150"/> | <img src="screenshots/goals/goalScreen.png" width="150"/> | <img src="screenshots/goals/goalDetails.png" width="150"/> | Users can also add transactions manually. All data is stored in Firebase Firestore and syncs across devices on login. A savings goals feature lets users set targets (e.g. "Rs. 80,000 for a laptop by Dashain") and track progress over time. |
 
 ## **1.1 Why This App**
 
 - No existing Nepali expense tracker parses bank SMS automatically
 - Existing apps have poor UX and lack BS date support
-- Integrates the developer's own Nepali Calendar Kit package
 - Real daily utility - used for NPR, designed for Nepali spending patterns
 
 ## **1.2 Tech Stack**
@@ -280,7 +279,6 @@ The Categorizer utility in core/utils/categorizer.dart maps keywords in transact
 - Day 11-12: Savings goals - create, contribute, progress bar
 - Day 13: Push notifications - transaction logged, goal achieved
 - Day 14: CSV export, testing, bug fixes, README
-
 
 This project demonstrates: advanced Flutter patterns, Firebase integration, background services, data parsing, chart rendering, and local/remote sync - all in a single coherent product targeting a real market gap.
 

@@ -12,9 +12,9 @@
 <!-- Phone State (optional, sometimes used for SIM/network info) -->
 <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <application
-        android:label="sajilo_khata"
+        android:label="Sajilo Khata"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <receiver android:name="com.shounakmulay.telephony.sms.IncomingSmsReceiver"
             android:permission="android.permission.BROADCAST_SMS"
             android:exported="true">
