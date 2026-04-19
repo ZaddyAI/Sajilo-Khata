@@ -26,11 +26,16 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 | **Authentication**   | Firebase Auth - Google + Email/Password |
 | **Database**         | Cloud Firestore (real-time sync)        |
 | **Local Cache**      | Hive (offline-first)                    |
+| **Sync Engine**      | Custom SyncService (online/offline)     |
 | **SMS Reading**      | telephony package (Android)             |
 | **Charts**           | fl_chart                                |
 | **Notifications**    | flutter_local_notifications + FCM       |
 | **Nepali Dates**     | nepali_calendar_kit (own package)       |
 | **ID Generation**    | uuid                                    |
+| **Currency API**     | frankfurter.dev (USD ↔ NPR)             |
+| **Share**            | share_plus (CSV sharing)                |
+| **Network**          | connectivity_plus (online/offline)      |
+| **Permissions**      | permission_handler                      |
 
 # **2\. Feature List**
 
@@ -52,6 +57,8 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 | **Data extraction** | Extracts amount, debit/credit, bank name, datetime         | Week 1   |
 | **Manual fallback** | User pastes SMS text - app parses and logs (iOS + unknown) | Week 1   |
 | **Unknown SMS**     | Unrecognized messages are silently ignored                 | Week 1   |
+| **SMS Groups**      | Select which senders to track (bank filter)                | Week 2   |
+| **Auto-toggle**     | Enable/disable auto-tracking in settings                   | Week 2   |
 
 ## **2.3 Manual Transactions**
 
@@ -79,6 +86,7 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 | **Bar chart**        | Daily spend over the last 30 days                     | Week 2   |
 | **BS / AD toggle**   | Switch between Bikram Sambat and Gregorian dates      | Week 2   |
 | **Transaction list** | Scrollable list - debit in red, credit in green       | Week 2   |
+| **Currency convert** | USD ↔ NPR live exchange rate (frankfurter.dev)        | Week 2   |
 
 ## **2.6 Savings Goals**
 
@@ -100,7 +108,8 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 | **SMS log alert** | Push notification when new transaction is auto-logged | Week 2   |
 | **Budget alert**  | Notify at 80% and 100% of monthly budget limit        | Week 2   |
 | **Goal alert**    | Celebrate when a savings goal is achieved             | Week 2   |
-| **CSV export**    | Export all transactions as a CSV file                 | Week 2   |
+| **CSV export**    | Export all/expense/income transactions as CSV         | Week 2   |
+| **Share**         | Share CSV via any app (share_plus)                    | Week 2   |
 
 # **3\. Project Structure**
 
@@ -118,33 +127,44 @@ The project follows a feature-first architecture. Each feature is self-contained
 
 ## **3.2 Core Layer**
 
-| **Path**                            | **Purpose**                                                   |
-| ----------------------------------- | ------------------------------------------------------------- |
-| core/models/transaction_model.dart  | TransactionModel - data class + Firestore serialization       |
-| core/models/goal_model.dart         | GoalModel - includes progress/status calculations             |
-| core/services/firebase_service.dart | All Firestore reads, writes, streams - single source of truth |
-| core/utils/categorizer.dart         | Keyword → category auto-assignment                            |
-| core/constants/app_theme.dart       | Light & dark MaterialTheme definitions                        |
+| **Path**                                 | **Purpose**                                                   |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| core/models/transaction_model.dart       | TransactionModel - data class + Firestore serialization       |
+| core/models/goal_model.dart              | GoalModel - includes progress/status calculations             |
+| core/services/firebase_service.dart      | All Firestore reads, writes, streams - single source of truth |
+| core/services/sms_service.dart           | SMS parsing, duplicate check, auto-import                     |
+| core/services/notification_service.dart  | Push notifications (FCM + local)                              |
+| core/services/sync_service.dart          | Offline/online sync orchestration                             |
+| core/services/local_storage_service.dart | Hive local cache for preferences                              |
+| core/services/exchange_rate_service.dart | USD ↔ NPR conversion via frankfurter.dev                      |
+| core/utils/categorizer.dart              | Keyword → category auto-assignment                            |
+| core/constants/app_theme.dart            | Light & dark MaterialTheme definitions                        |
 
 ## **3.3 Features Layer**
 
-| **Path**                            | **Purpose**                                          |
-| ----------------------------------- | ---------------------------------------------------- |
-| features/auth/bloc/                 | AuthBloc - Google/email login, logout, session check |
-| features/auth/repository/           | AuthRepository - wraps Firebase Auth calls           |
-| features/auth/screens/              | LoginScreen, SignupScreen, ProfileSetupScreen        |
-| features/sms/parser/sms_parser.dart | Regex parsers for all supported banks                |
-| features/sms/service/               | SmsListenerService - listens for new SMS on Android  |
-| features/transactions/bloc/         | TransactionBloc - add, edit, delete, list            |
-| features/transactions/repository/   | TransactionRepository - calls FirebaseService        |
-| features/transactions/screens/      | TransactionListScreen, AddTransactionScreen          |
-| features/transactions/widgets/      | TransactionTile, CategoryChip, AmountBadge           |
-| features/goals/bloc/                | GoalBloc - create, contribute, status update         |
-| features/goals/repository/          | GoalRepository - calls FirebaseService               |
-| features/goals/screens/             | GoalsListScreen, AddGoalScreen, GoalDetailScreen     |
-| features/goals/widgets/             | GoalCard, ProgressBar, StatusBadge                   |
-| features/dashboard/screens/         | DashboardScreen - monthly summary + charts           |
-| features/dashboard/widgets/         | SummaryCard, PieChartWidget, BarChartWidget          |
+| **Path**                                                   | **Purpose**                                                                    |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| features/auth/bloc/auth_bloc.dart                          | AuthBloc - Google/email login, logout, session check                           |
+| features/auth/bloc/auth_event.dart                         | Auth events (AuthCheckRequested, AuthLoginRequested, etc)                      |
+| features/auth/bloc/auth_state.dart                         | Auth states (AuthInitial, AuthLoading, AuthAuthenticated, AuthUnauthenticated) |
+| features/auth/screens/login_screen.dart                    | Login screen with Google + Email options                                       |
+| features/auth/screens/signup_screen.dart                   | Email signup screen                                                            |
+| features/auth/screens/profile_screen.dart                  | Profile management, logout                                                     |
+| features/auth/widgets/auth_widgets.dart                    | Reusable auth UI components                                                    |
+| features/sms/screens/sms_settings_screen.dart              | SMS senders filter, auto-toggle settings                                       |
+| features/transactions/bloc/transaction_bloc.dart           | TransactionBloc - add, edit, delete, list                                      |
+| features/transactions/bloc/transaction_event.dart          | Transaction events (Load, Add, Update, Delete)                                 |
+| features/transactions/bloc/transaction_state.dart          | Transaction states (Loading, Loaded, Error)                                    |
+| features/transactions/screens/transaction_list_screen.dart | Full transaction list with filters                                             |
+| features/transactions/screens/add_transaction_screen.dart  | Manual add/edit form                                                           |
+| features/transactions/widgets/transaction_tile.dart        | Individual transaction card UI                                                 |
+| features/goals/bloc/goal_bloc.dart                         | GoalBloc - create, contribute, status update                                   |
+| features/goals/bloc/goal_event.dart                        | Goal events (Load, Add, Contribute, Delete)                                    |
+| features/goals/bloc/goal_state.dart                        | Goal states (Loading, Loaded, Error)                                           |
+| features/goals/screens/goals_list_screen.dart              | All savings goals with progress                                                |
+| features/goals/screens/add_goal_screen.dart                | Create new goal form                                                           |
+| features/goals/screens/goal_detail_screen.dart             | Goal detail + contribution history                                             |
+| features/dashboard/screens/dashboard_screen.dart           | Monthly summary + charts + quick actions                                       |
 
 # **4\. Data Models**
 
