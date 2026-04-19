@@ -8,7 +8,17 @@ Built with Flutter + Firebase • Supports all major Nepal banks & wallets • B
 
 # **1\. Project Overview**
 
-Sajilo Khata is a Flutter mobile application that automatically tracks income and expenses by reading SMS messages from Nepali banks and digital wallets. Users can also add transactions manually. All data is stored in Firebase Firestore and syncs across devices on login. A savings goals feature lets users set targets (e.g. "Rs. 80,000 for a laptop by Dashain") and track progress over time.
+Sajilo Khata is a Flutter mobile application that automatically tracks income and expenses by reading SMS messages from Nepali banks and digital wallets.
+
+## **1.0 Screenshots**
+
+| Login | Dashboard | Ledger |
+| ----- | --------- | ------ |
+| <img src="screenshots/auth/loginPage.png" width="150"/> | <img src="screenshots/dashboard/mainDashboard.png" width="150"/> | <img src="screenshots/ledger/ledgerScreen.png" width="150"/> |
+
+| Add Transaction | Goals | Goal Details |
+| --------------- | ----- | ------------ |
+| <img src="screenshots/ledger/addLedger.png" width="150"/> | <img src="screenshots/goals/goalScreen.png" width="150"/> | <img src="screenshots/goals/goalDetails.png" width="150"/> | Users can also add transactions manually. All data is stored in Firebase Firestore and syncs across devices on login. A savings goals feature lets users set targets (e.g. "Rs. 80,000 for a laptop by Dashain") and track progress over time.
 
 ## **1.1 Why This App**
 
