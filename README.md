@@ -12,13 +12,41 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 
 ## **1.0 Screenshots**
 
-| Login                                                   | Dashboard                                                        | Ledger                                                       |
-| ------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| <img src="screenshots/auth/loginPage.png" width="150"/> | <img src="screenshots/dashboard/mainDashboard.png" width="150"/> | <img src="screenshots/ledger/ledgerScreen.png" width="150"/> |
+### Authentication
 
-| Add Transaction                                           | Goals                                                     | Goal Details                                               |
-| --------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <img src="screenshots/ledger/addLedger.png" width="150"/> | <img src="screenshots/goals/goalScreen.png" width="150"/> | <img src="screenshots/goals/goalDetails.png" width="150"/> | Users can also add transactions manually. All data is stored in Firebase Firestore and syncs across devices on login. A savings goals feature lets users set targets (e.g. "Rs. 80,000 for a laptop by Dashain") and track progress over time. |
+| Login | Signup |
+| :---: | :---: |
+| ![Login](screenshots/auth/loginPage.png) | ![Signup](screenshots/auth/signupPage.png) |
+
+### Dashboard
+
+| Main Dashboard | Monthly Summary |
+| :---: | :---: |
+| ![Dashboard](screenshots/dashboard/mainDashboard.png) | ![Summary](screenshots/dashboard/bottomPartofDashboard.png) |
+
+### Transactions
+
+| Ledger | Add Transaction | Transaction Details |
+| :---: | :---: | :---: |
+| ![Ledger](screenshots/ledger/ledgerScreen.png) | ![Add](screenshots/ledger/addLedger.png) | ![Details](screenshots/ledger/ledgerDetails.png) |
+
+### Savings Goals
+
+| Goals | Add Goal | Add Savings | Goal Details |
+| :---: | :---: | :---: | :---: |
+| ![Goals](screenshots/goals/goalScreen.png) | ![Add Goal](screenshots/goals/addNewGoal.png) | ![Add Savings](screenshots/goals/addSavings.png) | ![Details](screenshots/goals/goalDetails.png) |
+
+### Profile & Settings
+
+| Profile | SMS Auto-Track | Sync Status |
+| :---: | :---: | :---: |
+| ![Profile](screenshots/profile/profileScreen.png) | ![SMS](screenshots/profile/smsAutoTrack.png) | ![Sync](screenshots/profile/syncingWithFirestore.png) |
+
+### Permissions
+
+| Permission Request 1 | Permission Request 2 |
+| :---: | :---: |
+| ![Permissions](screenshots/askingPermission1.png) | ![Permissions](screenshots/askingPermission2.png) |
 
 ## **1.1 Why This App**
 
