@@ -39,6 +39,24 @@ class SmsService {
       } catch (_) {}
     }
 
+    // Pattern 1b: DD/MM/YY (e.g., 17/04/26) - Laxmi Sunrise format
+    match = RegExp(r'(\d{1,2})[/\-](\d{1,2})[/\-](\d{2})\b').firstMatch(body);
+    if (match != null) {
+      try {
+        final day = int.parse(match.group(1)!);
+        final month = int.parse(match.group(2)!);
+        final yearShort = int.parse(match.group(3)!);
+        final year = 2000 + yearShort;
+        if (day >= 1 &&
+            day <= 31 &&
+            month >= 1 &&
+            month <= 12 &&
+            year >= 2020) {
+          return DateTime(year, month, day);
+        }
+      } catch (_) {}
+    }
+
     // Pattern 2: DDMonYY (e.g., 01Dec25, 18Jul25, 26Mar26) - Nepali bank format
     match = RegExp(
       r'(\d{1,2})(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\d{2})',
@@ -344,6 +362,11 @@ class SmsService {
       remarks = remarksMatch.group(1)?.trim() ?? '';
     }
 
+    // Extract transaction ID for Laxmi Sunrise
+    final txIdMatch = RegExp(r'#(\d+)').firstMatch(body);
+    if (txIdMatch != null) {
+    }
+
     // Category and description based on sender and content
     if (lowerBody.contains('esewa load')) {
       category = 'Food & Dining';
@@ -368,6 +391,11 @@ class SmsService {
           : 'Remittance / Transfer';
       description = remarks.isNotEmpty ? '$senderName - $remarks' : senderName;
     } else if (lowerBody.contains('nabil') || lowerSender.contains('nabil')) {
+      category = type == TransactionType.credit
+          ? 'Salary / Income'
+          : 'Remittance / Transfer';
+      description = remarks.isNotEmpty ? '$senderName - $remarks' : senderName;
+    } else if (lowerBody.contains('laxmi sunrise') || lowerSender.contains('laxmi sunrise')) {
       category = type == TransactionType.credit
           ? 'Salary / Income'
           : 'Remittance / Transfer';

@@ -255,6 +255,7 @@ rules_version = '2'; service cloud.firestore { match /databases/{database}/docum
 | **NIC**   | "Your 024###32001 has been Credited by NPR 1,013.45 on 14/04/2026"    | Credited/Debited     |
 | **ADB**   | "NPR 15,000.00 deposited on 25/03/2026" / "withdrawn on 26/03/2026"   | deposited/withdrawn  |
 | **Nabil** | "deposited by NPR 1,500.00 on 06/04/2026" / "withdrawn by NPR 120.00" | deposited/withdrawn  |
+| **Laxmi Sunrise** | "Your #81205001 has been credited by NPR 10,000.00 on 17/04/26" | Credited/Debited     |
 
 ## **6.2 How the Parser Works**
 
