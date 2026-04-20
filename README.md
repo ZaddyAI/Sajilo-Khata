@@ -14,38 +14,38 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 
 ### Authentication
 
-| Login | Signup |
-| :---: | :---: |
+|                  Login                   |                   Signup                   |
+| :--------------------------------------: | :----------------------------------------: |
 | ![Login](screenshots/auth/loginPage.png) | ![Signup](screenshots/auth/signupPage.png) |
 
 ### Dashboard
 
-| Main Dashboard | Monthly Summary |
-| :---: | :---: |
+|                    Main Dashboard                     |                       Monthly Summary                       |
+| :---------------------------------------------------: | :---------------------------------------------------------: |
 | ![Dashboard](screenshots/dashboard/mainDashboard.png) | ![Summary](screenshots/dashboard/bottomPartofDashboard.png) |
 
 ### Transactions
 
-| Ledger | Add Transaction | Transaction Details |
-| :---: | :---: | :---: |
+|                     Ledger                     |             Add Transaction              |               Transaction Details                |
+| :--------------------------------------------: | :--------------------------------------: | :----------------------------------------------: |
 | ![Ledger](screenshots/ledger/ledgerScreen.png) | ![Add](screenshots/ledger/addLedger.png) | ![Details](screenshots/ledger/ledgerDetails.png) |
 
 ### Savings Goals
 
-| Goals | Add Goal | Add Savings | Goal Details |
-| :---: | :---: | :---: | :---: |
+|                   Goals                    |                   Add Goal                    |                   Add Savings                    |                 Goal Details                  |
+| :----------------------------------------: | :-------------------------------------------: | :----------------------------------------------: | :-------------------------------------------: |
 | ![Goals](screenshots/goals/goalScreen.png) | ![Add Goal](screenshots/goals/addNewGoal.png) | ![Add Savings](screenshots/goals/addSavings.png) | ![Details](screenshots/goals/goalDetails.png) |
 
 ### Profile & Settings
 
-| Profile | SMS Auto-Track | Sync Status |
-| :---: | :---: | :---: |
+|                      Profile                      |                SMS Auto-Track                |                      Sync Status                      |
+| :-----------------------------------------------: | :------------------------------------------: | :---------------------------------------------------: |
 | ![Profile](screenshots/profile/profileScreen.png) | ![SMS](screenshots/profile/smsAutoTrack.png) | ![Sync](screenshots/profile/syncingWithFirestore.png) |
 
 ### Permissions
 
-| Permission Request 1 | Permission Request 2 |
-| :---: | :---: |
+|               Permission Request 1                |               Permission Request 2                |
+| :-----------------------------------------------: | :-----------------------------------------------: |
 | ![Permissions](screenshots/askingPermission1.png) | ![Permissions](screenshots/askingPermission2.png) |
 
 ## **1.1 Why This App**
@@ -249,13 +249,13 @@ rules_version = '2'; service cloud.firestore { match /databases/{database}/docum
 
 ## **6.1 Supported Banks & Wallets**
 
-| **Bank**  | **Sample SMS Pattern**                                                | **Amount Pattern**   |
-| --------- | --------------------------------------------------------------------- | -------------------- |
-| **NIMB**  | "AC#050XX2057 Dr by NPR 2500 on 01Dec25" / "Cr by NPR 1600"           | Dr/Cr → debit/credit |
-| **NIC**   | "Your 024###32001 has been Credited by NPR 1,013.45 on 14/04/2026"    | Credited/Debited     |
-| **ADB**   | "NPR 15,000.00 deposited on 25/03/2026" / "withdrawn on 26/03/2026"   | deposited/withdrawn  |
-| **Nabil** | "deposited by NPR 1,500.00 on 06/04/2026" / "withdrawn by NPR 120.00" | deposited/withdrawn  |
-| **Laxmi Sunrise** | "Your #81205001 has been credited by NPR 10,000.00 on 17/04/26" | Credited/Debited     |
+| **Bank**          | **Sample SMS Pattern**                                                | **Amount Pattern**   |
+| ----------------- | --------------------------------------------------------------------- | -------------------- |
+| **NIMB**          | "AC#XXX Dr by NPR 2500 on 01Dec25" / "Cr by NPR 1600"                 | Dr/Cr → debit/credit |
+| **NIC Asia**      | "Your #XXXXXX has been Credited by NPR 1,013.45 on 14/04/2026"        | Credited/Debited     |
+| **ADB**           | "NPR 15,000.00 deposited on 25/03/2026" / "withdrawn on 26/03/2026"   | deposited/withdrawn  |
+| **Nabil**         | "deposited by NPR 1,500.00 on 06/04/2026" / "withdrawn by NPR 120.00" | deposited/withdrawn  |
+| **Laxmi Sunrise** | "Your #XXXXXX has been credited by NPR 10,000.00 on 17/04/26"         | Credited/Debited     |
 
 ## **6.2 How the Parser Works**
 
@@ -303,7 +303,7 @@ The Categorizer utility in core/utils/categorizer.dart maps keywords in transact
 
 ## **Week 2 - Polish**
 
-- Day 8-9: Dashboard - monthly summary, BS/AD toggle
+- Day 8-9: Dashboard - monthly summary
 - Day 10: Charts - pie chart by category, bar chart daily spend
 - Day 11-12: Savings goals - create, contribute, progress bar
 - Day 13: Push notifications - transaction logged, goal achieved

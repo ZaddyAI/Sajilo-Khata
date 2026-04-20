@@ -18,17 +18,17 @@ class LocalStorageService {
   Future<void> init() async {
     if (_initialized) return;
     await Hive.initFlutter();
-    
+
     await Hive.openBox<Map<dynamic, dynamic>>(transactionsBox);
     await Hive.openBox<Map<dynamic, dynamic>>(goalsBox);
-    await Hive.openBox<Map<dynamic, dynamic>>(syncQueueBox);
+    await Hive.openBox(syncQueueBox);
     await Hive.openBox(settingsBox);
-    
+
     _initialized = true;
   }
 
-  Box<Map<dynamic, dynamic>> get _txBox => Hive.box<Map<dynamic, dynamic>>(transactionsBox);
-  Box<Map<dynamic, dynamic>> get _goalBox => Hive.box<Map<dynamic, dynamic>>(goalsBox);
+  Box get _txBox => Hive.box(transactionsBox);
+  Box get _goalBox => Hive.box(goalsBox);
   Box get _queueBox => Hive.box(syncQueueBox);
   Box get _settingsBox => Hive.box(settingsBox);
 
@@ -179,8 +179,12 @@ class LocalStorageService {
   }
 
   List<Map> get pendingItems {
-    final txPending = _txBox.values.where((d) => d['_syncStatus'] == SyncStatus.pending.name);
-    final goalPending = _goalBox.values.where((d) => d['_syncStatus'] == SyncStatus.pending.name);
+    final txPending = _txBox.values.where(
+      (d) => d['_syncStatus'] == SyncStatus.pending.name,
+    );
+    final goalPending = _goalBox.values.where(
+      (d) => d['_syncStatus'] == SyncStatus.pending.name,
+    );
     return [...txPending, ...goalPending];
   }
 

@@ -362,11 +362,6 @@ class SmsService {
       remarks = remarksMatch.group(1)?.trim() ?? '';
     }
 
-    // Extract transaction ID for Laxmi Sunrise
-    final txIdMatch = RegExp(r'#(\d+)').firstMatch(body);
-    if (txIdMatch != null) {
-    }
-
     // Category and description based on sender and content
     if (lowerBody.contains('esewa load')) {
       category = 'Food & Dining';
@@ -395,7 +390,8 @@ class SmsService {
           ? 'Salary / Income'
           : 'Remittance / Transfer';
       description = remarks.isNotEmpty ? '$senderName - $remarks' : senderName;
-    } else if (lowerBody.contains('laxmi sunrise') || lowerSender.contains('laxmi sunrise')) {
+    } else if (lowerBody.contains('laxmi sunrise') ||
+        lowerSender.contains('laxmi sunrise')) {
       category = type == TransactionType.credit
           ? 'Salary / Income'
           : 'Remittance / Transfer';
