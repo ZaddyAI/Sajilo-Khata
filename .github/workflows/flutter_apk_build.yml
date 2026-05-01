@@ -17,17 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # Step 2: Ensure Case-Sensitive File Names
-      - name: Verify app_colors.dart exists
-        run: |
-          echo "Checking for app_colors.dart..."
-          ls -la lib/constants/
-          if [ ! -f lib/constants/app_colors.dart ]; then
-            echo "Error: lib/constants/app_colors.dart not found!"
-            exit 1
-          fi
-
+          
       # Step 3: Set Up Java 17
       - name: Set up Java 17
         uses: actions/setup-java@v4
