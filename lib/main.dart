@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart' hide FirebaseService;
 import 'package:provider/provider.dart';
 import 'package:telephony/telephony.dart';
 
@@ -172,10 +172,26 @@ class _MainNavigationState extends State<MainNavigation> {
   bool _smsListenerActive = false;
 
   static const _navItems = [
-    _NavItem(label: 'Home', icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
-    _NavItem(label: 'Ledger', icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long_rounded),
-    _NavItem(label: 'Goals', icon: Icons.savings_outlined, activeIcon: Icons.savings_rounded),
-    _NavItem(label: 'Profile', icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded),
+    _NavItem(
+      label: 'Home',
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
+    ),
+    _NavItem(
+      label: 'Ledger',
+      icon: Icons.receipt_long_outlined,
+      activeIcon: Icons.receipt_long_rounded,
+    ),
+    _NavItem(
+      label: 'Goals',
+      icon: Icons.savings_outlined,
+      activeIcon: Icons.savings_rounded,
+    ),
+    _NavItem(
+      label: 'Profile',
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+    ),
   ];
 
   @override
@@ -329,7 +345,9 @@ class _PremiumBottomNav extends StatelessWidget {
                             item.label,
                             style: TextStyle(
                               fontSize: 10,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
                               color: selected
                                   ? AppTheme.primary
                                   : AppTheme.onSurfaceVariant,
@@ -358,9 +376,7 @@ class SplashScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppTheme.signatureGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.signatureGradient),
         child: SafeArea(
           child: Center(
             child: Column(

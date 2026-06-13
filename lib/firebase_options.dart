@@ -42,47 +42,49 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyAV0gawAWIe3-D1eq_xFH06bwIjraNxF88',
-    appId: '1:437548364812:web:5315449e1d0cd7551aaa29',
+    appId: '1:437548364812:web:bd01ef7d893995911aaa29',
     messagingSenderId: '437548364812',
     projectId: 'sajilokhata-102c9',
     authDomain: 'sajilokhata-102c9.firebaseapp.com',
     storageBucket: 'sajilokhata-102c9.firebasestorage.app',
-    measurementId: 'G-DX1S16PVHD',
+    measurementId: 'G-ZYSSJWY92L',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBhmMPyL8XFKaXCsFO_jL4KwRZYsndh8Xo',
-    appId: '1:437548364812:android:4b0b8b29c63b06e31aaa29',
+    appId: '1:437548364812:android:eff46648db272a2a1aaa29',
     messagingSenderId: '437548364812',
     projectId: 'sajilokhata-102c9',
     storageBucket: 'sajilokhata-102c9.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCOzHZb0nDsb5vNLng0cqdwhGaeC9E8F_w',
-    appId: '1:437548364812:ios:202789b9025331521aaa29',
+    appId: '1:437548364812:ios:068cae304b1967051aaa29',
     messagingSenderId: '437548364812',
     projectId: 'sajilokhata-102c9',
     storageBucket: 'sajilokhata-102c9.firebasestorage.app',
-    iosBundleId: 'com.example.sajiloKhata',
+    androidClientId: '437548364812-7b9qdrrg810qvcst2fdoj4iuc57blltt.apps.googleusercontent.com',
+    iosClientId: '437548364812-nurfp040n9h674gt2g26dc9qnm83q1ae.apps.googleusercontent.com',
+    iosBundleId: 'com.sajilokhata.app',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCOzHZb0nDsb5vNLng0cqdwhGaeC9E8F_w',
-    appId: '1:437548364812:ios:202789b9025331521aaa29',
+    appId: '1:437548364812:ios:068cae304b1967051aaa29',
     messagingSenderId: '437548364812',
     projectId: 'sajilokhata-102c9',
     storageBucket: 'sajilokhata-102c9.firebasestorage.app',
-    iosBundleId: 'com.example.sajiloKhata',
+    androidClientId: '437548364812-7b9qdrrg810qvcst2fdoj4iuc57blltt.apps.googleusercontent.com',
+    iosClientId: '437548364812-nurfp040n9h674gt2g26dc9qnm83q1ae.apps.googleusercontent.com',
+    iosBundleId: 'com.sajilokhata.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyAV0gawAWIe3-D1eq_xFH06bwIjraNxF88',
-    appId: '1:437548364812:web:7b2b4876246341d21aaa29',
+    appId: '1:437548364812:web:c746d95da74176771aaa29',
     messagingSenderId: '437548364812',
     projectId: 'sajilokhata-102c9',
     authDomain: 'sajilokhata-102c9.firebaseapp.com',
     storageBucket: 'sajilokhata-102c9.firebasestorage.app',
-    measurementId: 'G-G7SWYJTH71',
+    measurementId: 'G-R5C0M21VY9',
   );
 }

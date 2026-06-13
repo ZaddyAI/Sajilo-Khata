@@ -120,7 +120,7 @@ class AuthOrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(thickness: 1, color: Color(0xFFE8ECEA))),
+        const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -130,7 +130,7 @@ class AuthOrDivider extends StatelessWidget {
             ).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
           ),
         ),
-        const Expanded(child: Divider(thickness: 1, color: Color(0xFFE8ECEA))),
+        const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
       ],
     );
   }
@@ -156,7 +156,7 @@ class AuthGoogleButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          side: const BorderSide(color: Color(0xFFDDE2DF), width: 1.5),
+          side: const BorderSide(color: AppTheme.outlineVariant, width: 1.5),
           foregroundColor: AppTheme.onSurface,
           backgroundColor: Colors.white,
         ),
@@ -164,12 +164,23 @@ class AuthGoogleButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.g_mobiledata_rounded, size: 22),
+              child: const Text(
+                'G',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF4285F4),
+                  letterSpacing: 0,
+                ),
+              ),
             ),
             const SizedBox(width: 10),
             Text(
