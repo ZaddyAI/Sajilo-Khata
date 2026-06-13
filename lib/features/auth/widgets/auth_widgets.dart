@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_theme.dart';
 
-/// Shared UI widgets used by both LoginScreen and SignupScreen.
-
 class AuthFieldLabel extends StatelessWidget {
   final String label;
   const AuthFieldLabel({super.key, required this.label});
@@ -29,18 +27,25 @@ class AuthErrorBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: AppTheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppTheme.error.withValues(alpha: 0.25),
+          color: AppTheme.error.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppTheme.error,
-            size: 16,
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppTheme.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(
+              Icons.error_outline_rounded,
+              color: AppTheme.error,
+              size: 14,
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -95,10 +100,12 @@ class AuthPrimaryButton extends StatelessWidget {
               )
             : Text(
                 label,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.3,
+                  color: Colors.white,
                 ),
               ),
       ),
@@ -113,7 +120,7 @@ class AuthOrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(thickness: 1)),
+        const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -123,7 +130,7 @@ class AuthOrDivider extends StatelessWidget {
             ).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
           ),
         ),
-        const Expanded(child: Divider(thickness: 1)),
+        const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
       ],
     );
   }
@@ -151,17 +158,36 @@ class AuthGoogleButton extends StatelessWidget {
           ),
           side: const BorderSide(color: AppTheme.outlineVariant, width: 1.5),
           foregroundColor: AppTheme.onSurface,
+          backgroundColor: Colors.white,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.g_mobiledata_rounded, size: 22),
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Text(
+                'G',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF4285F4),
+                  letterSpacing: 0,
+                ),
+              ),
+            ),
             const SizedBox(width: 10),
             Text(
               'Continue with Google',
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

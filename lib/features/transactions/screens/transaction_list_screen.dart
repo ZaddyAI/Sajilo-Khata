@@ -51,16 +51,24 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       appBar: AppBar(
         title: const Text('Ledger'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            tooltip: 'Filter',
-            onPressed: () => _showFilterSheet(context),
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.tune_rounded, size: 20),
+              tooltip: 'Filter',
+              onPressed: () => _showFilterSheet(context),
+            ),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
             ),
+            elevation: 8,
             onSelected: (value) {
               switch (value) {
                 case 'export_all':
@@ -89,7 +97,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               ),
             ],
           ),
-          const SizedBox(width: 4),
         ],
       ),
       body: BlocBuilder<TransactionBloc, TransactionState>(
@@ -189,7 +196,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppTheme.surfaceContainerLow,
+                color: const Color(0xFFECEFED),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
@@ -282,7 +289,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     children: [
                       Text(
                         'Filter Transactions',
-                        style: Theme.of(sheetContext).textTheme.titleLarge,
+                        style: Theme.of(sheetContext).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       if (_dateFilter != null ||
                           _currentFilter != TransactionFilterBy.all)
@@ -299,7 +307,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     'Type',
                     style: Theme.of(sheetContext).textTheme.titleSmall
@@ -345,7 +353,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Text(
                     'Date Range',
                     style: Theme.of(sheetContext).textTheme.titleSmall
@@ -403,7 +411,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -431,17 +439,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
     if (_dateFilter != null) {
       final fromStart = DateTime(
-        _dateFilter!.from.year,
-        _dateFilter!.from.month,
-        _dateFilter!.from.day,
+        _dateFilter!.from.year, _dateFilter!.from.month, _dateFilter!.from.day,
       );
       final toEnd = DateTime(
-        _dateFilter!.to.year,
-        _dateFilter!.to.month,
-        _dateFilter!.to.day,
-        23,
-        59,
-        59,
+        _dateFilter!.to.year, _dateFilter!.to.month, _dateFilter!.to.day,
+        23, 59, 59,
       );
       filtered = filtered.where((tx) {
         return tx.dateAD.isAfter(fromStart.subtract(const Duration(days: 1))) &&
@@ -535,21 +537,21 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  _detailRow(context, 'Category', tx.category),
+                  const SizedBox(height: 24),
+                  _detailRow(sheetContext, 'Category', tx.category),
                   if (tx.bank != null)
-                    _detailRow(context, 'Bank / Wallet', tx.bank!),
+                    _detailRow(sheetContext, 'Bank / Wallet', tx.bank!),
                   if (tx.note != null && tx.note!.isNotEmpty)
-                    _detailRow(context, 'Note', tx.note!),
-                  _detailRow(context, 'Date', dateFormat.format(tx.dateAD)),
+                    _detailRow(sheetContext, 'Note', tx.note!),
+                  _detailRow(sheetContext, 'Date', dateFormat.format(tx.dateAD)),
                   if (tx.dateBS.isNotEmpty)
-                    _detailRow(context, 'Date (BS)', tx.dateBS),
+                    _detailRow(sheetContext, 'Date (BS)', tx.dateBS),
                   _detailRow(
-                    context,
+                    sheetContext,
                     'Source',
                     tx.source == TransactionSource.sms ? 'SMS' : 'Manual',
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
@@ -601,7 +603,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLow,
+        color: const Color(0xFFF4F6F5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -611,17 +613,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             width: 100,
             child: Text(
               label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.onSurfaceVariant,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

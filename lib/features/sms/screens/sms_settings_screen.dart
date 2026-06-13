@@ -55,7 +55,6 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   Future<void> _scanSenders() async {
     setState(() => _isScanning = true);
     try {
-      // Scan ALL messages without date filter
       final messages = await Telephony.instance.getInboxSms(
         columns: [SmsColumn.ADDRESS],
       );
@@ -85,226 +84,397 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.sms,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Auto-Track SMS',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Select senders from your device messages to track transactions automatically.',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildInfoCard(),
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sync Mode',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SwitchListTile(
-                    title: const Text('Manual Entry Only'),
-                    subtitle: const Text('Add transactions manually'),
-                    value: _manualOnly,
-                    onChanged: _isLoading
-                        ? null
-                        : (value) async {
-                            if (value == false) {
-                              final granted = await _requestSmsPermission();
-                              if (!granted) return;
-                            }
-                            await _firebaseService.setSmsAutoTrack(!value);
-                            setState(() => _manualOnly = value);
-                          },
-                  ),
-                  if (!_manualOnly) ...[
-                    const Divider(),
-                    Row(
-                      children: [
-                        const Text(
-                          'Select Senders',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const Spacer(),
-                        TextButton.icon(
-                          icon: _isScanning
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.refresh, size: 18),
-                          label: Text(_isScanning ? 'Scanning...' : 'Scan'),
-                          onPressed: _isScanning ? null : _scanSenders,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    if (_deviceSenders.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        color: Colors.grey[100],
-                        child: const Row(
-                          children: [
-                            Icon(Icons.sms_outlined),
-                            SizedBox(width: 12),
-                            Text('No senders - tap Scan'),
-                          ],
-                        ),
-                      )
-                    else
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _deviceSenders.map((sender) {
-                          final isSelected = _selectedGroups.contains(sender);
-                          return FilterChip(
-                            label: Text(
-                              sender.length > 12
-                                  ? '${sender.substring(0, 12)}...'
-                                  : sender,
-                            ),
-                            selected: isSelected,
-                            onSelected: (selected) async {
-                              final newGroups = List<String>.from(
-                                _selectedGroups,
-                              );
-                              if (selected) {
-                                newGroups.add(sender);
-                              } else {
-                                newGroups.remove(sender);
-                              }
-                              await _firebaseService.setSelectedSmsGroups(
-                                newGroups,
-                              );
-                              SmsService().updateSelectedGroups(newGroups);
-                              setState(() => _selectedGroups = newGroups);
-                            },
-                            selectedColor: AppTheme.primary.withValues(
-                              alpha: 0.3,
-                            ),
-                            checkmarkColor: AppTheme.primary,
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: 16),
-                    if (_selectedGroups.isNotEmpty) ...[
-                      const Divider(),
-                      const Text(
-                        'Import from Selected',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          ActionChip(
-                            avatar: const Icon(Icons.today, size: 18),
-                            label: const Text('Today'),
-                            onPressed: _isSyncing ? null : () => _syncSms(0),
-                          ),
-                          ActionChip(
-                            avatar: const Icon(Icons.calendar_today, size: 18),
-                            label: const Text('7 Days'),
-                            onPressed: _isSyncing ? null : () => _syncSms(7),
-                          ),
-                          ActionChip(
-                            avatar: const Icon(Icons.date_range, size: 18),
-                            label: const Text('30 Days'),
-                            onPressed: _isSyncing ? null : () => _syncSms(30),
-                          ),
-                          ActionChip(
-                            avatar: const Icon(Icons.calendar_month, size: 18),
-                            label: const Text('Custom'),
-                            onPressed: _isSyncing
-                                ? null
-                                : () => _selectCustomDate(context),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ],
-              ),
-            ),
-          ),
+          _buildSyncModeCard(context),
           const SizedBox(height: 16),
-          if (_manualOnly)
-            Card(
-              color: Colors.blue[50],
-              child: const Padding(
-                padding: EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(Icons.info, color: Colors.blue),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Manual mode: Add transactions using + on Dashboard',
-                      ),
-                    ),
-                  ],
-                ),
+          _buildStatusCard(),
+          if (_isSyncing) ...[
+            const SizedBox(height: 24),
+            const Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+          ],
+          if (!_manualOnly && !_isSyncing) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: _requestSmsPermission,
+                icon: const Icon(Icons.security, size: 20),
+                label: const Text('Grant SMS Permission'),
               ),
             ),
-          if (!_manualOnly)
-            Card(
-              color: Colors.amber[50],
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.security, color: Colors.amber),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'SMS permission required. Your data stays on your device.',
-                        style: TextStyle(color: Colors.amber[900]),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-          if (_isSyncing) const Center(child: CircularProgressIndicator()),
-          if (!_manualOnly && !_isSyncing)
-            ElevatedButton.icon(
-              onPressed: _requestSmsPermission,
-              icon: const Icon(Icons.security),
-              label: const Text('Grant SMS Permission'),
-            ),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildInfoCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: AppTheme.signatureGradient,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.sms_rounded, color: AppTheme.onPrimary, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'SMS Auto-Track',
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Select senders from your device\nmessages to track transactions automatically.',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    color: AppTheme.onPrimary.withValues(alpha: 0.7),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSyncModeCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sync Mode',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFECEFED),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _isLoading ? null : () => _setMode(true),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _manualOnly
+                            ? AppTheme.surfaceContainerLowest
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: _manualOnly ? AppTheme.cardShadow : [],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Manual',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _isLoading ? null : () => _setMode(false),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: !_manualOnly
+                            ? AppTheme.surfaceContainerLowest
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: !_manualOnly ? AppTheme.cardShadow : [],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Automatic',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!_manualOnly) ...[
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Text(
+                  'Select Senders',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  icon: _isScanning
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh_rounded, size: 18),
+                  label: Text(_isScanning ? 'Scanning...' : 'Scan'),
+                  onPressed: _isScanning ? null : _scanSenders,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_deviceSenders.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4F6F5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.sms_outlined,
+                      size: 18,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'No senders found - tap Scan',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _deviceSenders.map((sender) {
+                  final isSelected = _selectedGroups.contains(sender);
+                  return FilterChip(
+                    label: Text(
+                      sender.length > 12
+                          ? '${sender.substring(0, 12)}...'
+                          : sender,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: isSelected
+                            ? AppTheme.primary
+                            : AppTheme.onSurfaceVariant,
+                      ),
+                    ),
+                    selected: isSelected,
+                    onSelected: (selected) async {
+                      final newGroups = List<String>.from(_selectedGroups);
+                      if (selected) {
+                        newGroups.add(sender);
+                      } else {
+                        newGroups.remove(sender);
+                      }
+                      await _firebaseService.setSelectedSmsGroups(newGroups);
+                      SmsService().updateSelectedGroups(newGroups);
+                      setState(() => _selectedGroups = newGroups);
+                    },
+                    selectedColor: AppTheme.primary.withValues(alpha: 0.12),
+                    checkmarkColor: AppTheme.primary,
+                  );
+                }).toList(),
+              ),
+            if (_selectedGroups.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
+              Text(
+                'Import from Selected',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _importChip(
+                    icon: Icons.today_rounded,
+                    label: 'Today',
+                    onTap: _isSyncing ? null : () => _syncSms(0),
+                  ),
+                  _importChip(
+                    icon: Icons.date_range_rounded,
+                    label: '7 Days',
+                    onTap: _isSyncing ? null : () => _syncSms(7),
+                  ),
+                  _importChip(
+                    icon: Icons.calendar_month_rounded,
+                    label: '30 Days',
+                    onTap: _isSyncing ? null : () => _syncSms(30),
+                  ),
+                  _importChip(
+                    icon: Icons.more_horiz_rounded,
+                    label: 'Custom',
+                    onTap: _isSyncing ? null : () => _selectCustomDate(context),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _importChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    return ActionChip(
+      avatar: Icon(icon, size: 16, color: AppTheme.primary),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.primary,
+        ),
+      ),
+      onPressed: onTap,
+      backgroundColor: AppTheme.primary.withValues(alpha: 0.06),
+      side: const BorderSide(color: AppTheme.primary, width: 1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    );
+  }
+
+  Widget _buildStatusCard() {
+    IconData icon;
+    String title;
+    String subtitle;
+    Color bgColor;
+    Color iconColor;
+
+    if (_manualOnly) {
+      icon = Icons.info_outline_rounded;
+      title = 'Manual Mode';
+      subtitle = 'Add transactions using + on Dashboard';
+      bgColor = const Color(0xFFE2F0FF);
+      iconColor = const Color(0xFF0057B3);
+    } else {
+      icon = Icons.security_rounded;
+      title = 'Automatic Mode';
+      subtitle = 'SMS permission required. Your data stays on your device.';
+      bgColor = const Color(0xFFFFF4E0);
+      iconColor = const Color(0xFFB8860B);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: iconColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    color: iconColor.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _setMode(bool manual) async {
+    if (manual == false) {
+      final granted = await _requestSmsPermission();
+      if (!granted) return;
+    }
+    await _firebaseService.setSmsAutoTrack(!manual);
+    setState(() => _manualOnly = manual);
   }
 
   Future<bool> _requestSmsPermission() async {

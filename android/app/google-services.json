@@ -7,20 +7,12 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:437548364812:android:4b0b8b29c63b06e31aaa29",
+        "mobilesdk_app_id": "1:437548364812:android:eff46648db272a2a1aaa29",
         "android_client_info": {
-          "package_name": "com.example.sajilo_khata"
+          "package_name": "com.sajilokhata.app"
         }
       },
       "oauth_client": [
-        {
-          "client_id": "437548364812-7b9qdrrg810qvcst2fdoj4iuc57blltt.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.sajilo_khata",
-            "certificate_hash": "10843ca3bc6b1dedecb8a7c38805aaa9f39bd669"
-          }
-        },
         {
           "client_id": "437548364812-gr0i8oigkuesqi5di6mp4trhsu8nebe0.apps.googleusercontent.com",
           "client_type": 3

@@ -70,21 +70,31 @@ class _GoalDetailContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(goal.emoji, style: const TextStyle(fontSize: 64)),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Center(
+                child: Text(goal.emoji, style: const TextStyle(fontSize: 36)),
+              ),
+            ),
             const SizedBox(height: 16),
             Text(
               goal.name,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 goal.status == GoalStatus.achieved
@@ -93,12 +103,14 @@ class _GoalDetailContent extends StatelessWidget {
                     ? 'Behind Schedule'
                     : 'On Track',
                 style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                   color: statusColor,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 36),
             Stack(
               alignment: Alignment.center,
               children: [
@@ -108,7 +120,7 @@ class _GoalDetailContent extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: goal.progressPercent,
                     strokeWidth: 12,
-                    backgroundColor: AppTheme.outlineVariant,
+                    backgroundColor: const Color(0xFFECEFED),
                     valueColor: AlwaysStoppedAnimation(statusColor),
                   ),
                 ),
@@ -117,7 +129,7 @@ class _GoalDetailContent extends StatelessWidget {
                     Text(
                       '${(goal.progressPercent * 100).toStringAsFixed(0)}%',
                       style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w700),
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     Text(
                       'complete',
@@ -134,7 +146,9 @@ class _GoalDetailContent extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppTheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppTheme.cardShadow,
+                border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
               ),
               child: Column(
                 children: [
@@ -164,12 +178,14 @@ class _GoalDetailContent extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppTheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: AppTheme.cardShadow,
+                border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
               ),
               child: Column(
                 children: [
@@ -202,14 +218,33 @@ class _GoalDetailContent extends StatelessWidget {
               ),
             ),
             if (goal.savingsHistory.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              Text(
-                'Savings History',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              const SizedBox(height: 28),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.history_rounded,
+                        color: AppTheme.primary,
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Savings History',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
               ...goal.savingsHistory.reversed.map(
                 (c) => _contributionTile(
                   context,
@@ -222,20 +257,21 @@ class _GoalDetailContent extends StatelessWidget {
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
-              height: 48,
+              height: 50,
               child: ElevatedButton.icon(
                 onPressed: () => _showContributeDialog(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: AppTheme.onPrimary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                icon: const Icon(Icons.add),
+                icon: const Icon(Icons.add, size: 20),
                 label: const Text('Add Savings'),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -253,18 +289,27 @@ class _GoalDetailContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: AppTheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.onSurfaceVariant,
+              ),
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
               color: AppTheme.onSurface,
             ),
           ),
@@ -368,8 +413,10 @@ class _GoalDetailContent extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
       ),
       child: Row(
         children: [
@@ -377,7 +424,7 @@ class _GoalDetailContent extends StatelessWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppTheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.savings, color: AppTheme.primary, size: 20),
           ),
@@ -388,9 +435,8 @@ class _GoalDetailContent extends StatelessWidget {
               children: [
                 Text(
                   '${CurrencyHelper.symbol}${CurrencyHelper.format(contribution.amount)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
