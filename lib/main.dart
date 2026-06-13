@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart' hide FirebaseService;
 import 'package:provider/provider.dart';
-import 'package:telephony/telephony.dart';
+import 'package:android_sms_reader/android_sms_reader.dart';
 
 import 'core/services/exchange_rate_service.dart';
 import 'core/services/local_storage_service.dart';
@@ -26,11 +26,6 @@ import 'features/goals/bloc/goal_bloc.dart';
 import 'features/goals/bloc/goal_event.dart';
 import 'firebase_options.dart';
 
-@pragma('vm:entry-point')
-Future<void> _backgroundSmsHandler(SmsMessage message) async {
-  await SmsService().processSms(message.address ?? '', message.body ?? '');
-}
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -51,28 +46,18 @@ void main() async {
 }
 
 Future<void> _initSmsListener() async {
-  final telephony = Telephony.instance;
-  try {
-    final permissions = await telephony.requestPhoneAndSmsPermissions;
-    if (permissions ?? false) {
-      telephony.listenIncomingSms(
-        onNewMessage: (message) async {
-          try {
-            final sender = message.address ?? '';
-            final body = message.body ?? '';
-            print('[SMS] Received from $sender: $body');
-            await SmsService().processSms(sender, body);
-          } catch (e) {
-            print('[SMS] Error: $e');
-          }
-        },
-        onBackgroundMessage: _backgroundSmsHandler,
-      );
-      print('[SMS] Listener started');
+  final granted = await AndroidSMSReader.requestPermissions();
+  if (!granted) return;
+
+  AndroidSMSReader.observeIncomingMessages().listen((sms) {
+    try {
+      print('[SMS] Received from ${sms.address}: ${sms.body}');
+      SmsService().processSms(sms.address, sms.body);
+    } catch (e) {
+      print('[SMS] Error: $e');
     }
-  } catch (e) {
-    print('[SMS] Init error: $e');
-  }
+  });
+  print('[SMS] Listener started');
 }
 
 class SajiloKhataApp extends StatefulWidget {
@@ -205,28 +190,17 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Future<void> _initSmsListener() async {
     if (_smsListenerActive) return;
-    final telephony = Telephony.instance;
-    try {
-      final permissions = await telephony.requestPhoneAndSmsPermissions;
-      if (permissions ?? false) {
-        _smsListenerActive = true;
-        telephony.listenIncomingSms(
-          onNewMessage: (message) async {
-            try {
-              final sender = message.address ?? '';
-              final body = message.body ?? '';
-              await SmsService().processSms(sender, body);
-            } catch (e) {
-              print('[SMS-Nav] Error: $e');
-            }
-          },
-          onBackgroundMessage: _backgroundSmsHandler,
-        );
-        if (mounted) setState(() {});
+    final granted = await AndroidSMSReader.requestPermissions();
+    if (!granted) return;
+    _smsListenerActive = true;
+    AndroidSMSReader.observeIncomingMessages().listen((sms) {
+      try {
+        SmsService().processSms(sms.address, sms.body);
+      } catch (e) {
+        print('[SMS-Nav] Error: $e');
       }
-    } catch (e) {
-      print('[SMS-Nav] Init error: $e');
-    }
+    });
+    if (mounted) setState(() {});
   }
 
   @override
