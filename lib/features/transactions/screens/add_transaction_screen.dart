@@ -80,14 +80,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
               children: [
-                // Type Toggle
                 _TypeToggle(
                   selected: _type,
                   onChanged: (t) => setState(() => _type = t),
                 ),
                 const SizedBox(height: 24),
 
-                // Amount
                 TextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
@@ -114,7 +112,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Category
                 DropdownButtonFormField<String>(
                   initialValue: _category,
                   decoration: const InputDecoration(
@@ -128,7 +125,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Note
                 TextFormField(
                   controller: _noteController,
                   maxLines: 2,
@@ -140,7 +136,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Bank / Wallet
                 TextFormField(
                   controller: _bankController,
                   decoration: const InputDecoration(
@@ -150,7 +145,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Date Picker
                 _DatePickerField(
                   date: _date,
                   onTap: () async {
@@ -165,7 +159,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Save Button
                 SizedBox(
                   height: 52,
                   child: ElevatedButton(
@@ -217,8 +210,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 }
 
-// ─── Reusable form widgets ─────────────────────────────────────────────────────
-
 class _TypeToggle extends StatelessWidget {
   final TransactionType selected;
   final ValueChanged<TransactionType> onChanged;
@@ -229,7 +220,7 @@ class _TypeToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLow,
+        color: const Color(0xFFECEFED),
         borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.all(4),
@@ -284,15 +275,7 @@ class _TypeOption extends StatelessWidget {
                 ? AppTheme.surfaceContainerLowest
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: AppTheme.onSurface.withValues(alpha: 0.06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [],
+            boxShadow: selected ? AppTheme.cardShadow : [],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -331,8 +314,9 @@ class _DatePickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.outlineVariant, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          color: const Color(0xFFF4F6F5),
+          border: Border.all(color: const Color(0xFFE8ECEA), width: 1.5),
         ),
         child: Row(
           children: [

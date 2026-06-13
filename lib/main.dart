@@ -115,7 +115,10 @@ class _SajiloKhataAppState extends State<SajiloKhataApp> {
       providers: [
         RepositoryProvider(create: (_) => AuthRepository()),
         RepositoryProvider(create: (_) => firebaseService),
-        ChangeNotifierProvider(create: (_) => CurrencyNotifier()..setCurrency(CurrencyHelper.currency)),
+        ChangeNotifierProvider(
+          create: (_) =>
+              CurrencyNotifier()..setCurrency(CurrencyHelper.currency),
+        ),
       ],
       child: BlocProvider(
         create: (context) =>
@@ -169,26 +172,10 @@ class _MainNavigationState extends State<MainNavigation> {
   bool _smsListenerActive = false;
 
   static const _navItems = [
-    _NavItem(
-      label: 'Dashboard',
-      icon: Icons.grid_view_outlined,
-      activeIcon: Icons.grid_view_rounded,
-    ),
-    _NavItem(
-      label: 'Ledger',
-      icon: Icons.receipt_long_outlined,
-      activeIcon: Icons.receipt_long_rounded,
-    ),
-    _NavItem(
-      label: 'Goals',
-      icon: Icons.savings_outlined,
-      activeIcon: Icons.savings_rounded,
-    ),
-    _NavItem(
-      label: 'Profile',
-      icon: Icons.person_outline_rounded,
-      activeIcon: Icons.person_rounded,
-    ),
+    _NavItem(label: 'Home', icon: Icons.home_outlined, activeIcon: Icons.home_rounded),
+    _NavItem(label: 'Ledger', icon: Icons.receipt_long_outlined, activeIcon: Icons.receipt_long_rounded),
+    _NavItem(label: 'Goals', icon: Icons.savings_outlined, activeIcon: Icons.savings_rounded),
+    _NavItem(label: 'Profile', icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded),
   ];
 
   @override
@@ -251,7 +238,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ProfileScreen(),
           ],
         ),
-        bottomNavigationBar: _BottomNav(
+        bottomNavigationBar: _PremiumBottomNav(
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
           items: _navItems,
@@ -272,12 +259,12 @@ class _NavItem {
   });
 }
 
-class _BottomNav extends StatelessWidget {
+class _PremiumBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final List<_NavItem> items;
 
-  const _BottomNav({
+  const _PremiumBottomNav({
     required this.currentIndex,
     required this.onTap,
     required this.items,
@@ -291,69 +278,72 @@ class _BottomNav extends StatelessWidget {
       margin: EdgeInsets.fromLTRB(16, 0, 16, bottomPad + 12),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppTheme.surfaceContainerLow, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.10),
-            blurRadius: 32,
-            spreadRadius: 0,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: AppTheme.elevatedShadow,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(items.length, (i) {
-            final selected = i == currentIndex;
-            final item = items[i];
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => onTap(i),
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeInOut,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? AppTheme.primary.withValues(alpha: 0.08)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        selected ? item.activeIcon : item.icon,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.8),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            child: Row(
+              children: List.generate(items.length, (i) {
+                final selected = i == currentIndex;
+                final item = items[i];
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => onTap(i),
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
                         color: selected
-                            ? AppTheme.primary
-                            : AppTheme.onSurfaceVariant,
-                        size: 22,
+                            ? AppTheme.primary.withValues(alpha: 0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(24),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.label,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: selected
-                              ? AppTheme.primary
-                              : AppTheme.onSurfaceVariant,
-                          fontWeight: selected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              selected ? item.activeIcon : item.icon,
+                              key: ValueKey(selected),
+                              color: selected
+                                  ? AppTheme.primary
+                                  : AppTheme.onSurfaceVariant,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            item.label,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                              color: selected
+                                  ? AppTheme.primary
+                                  : AppTheme.onSurfaceVariant,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          }),
+                );
+              }),
+            ),
+          ),
         ),
       ),
     );
@@ -366,34 +356,40 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primary,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: AppTheme.signatureGradient,
+        ),
+        child: SafeArea(
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Logo mark
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 88,
+                  height: 88,
                   decoration: BoxDecoration(
-                    color: AppTheme.onPrimary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(24),
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      width: 1,
+                    ),
                   ),
                   child: const Icon(
                     Icons.account_balance_wallet_rounded,
-                    size: 40,
+                    size: 44,
                     color: AppTheme.onPrimary,
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
+                const SizedBox(height: 28),
+                const Text(
                   'Sajilo Khata',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 36,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -1.0,
                     color: AppTheme.onPrimary,
                   ),
@@ -401,22 +397,23 @@ class SplashScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Smart expense tracking',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 15,
                     color: AppTheme.onPrimary.withValues(alpha: 0.7),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
                 SizedBox(
-                  width: 32,
-                  height: 32,
+                  width: 28,
+                  height: 28,
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppTheme.onPrimary.withValues(alpha: 0.6),
-                    ),
                     strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppTheme.onPrimary.withValues(alpha: 0.7),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 32),
               ],
             ),
           ),

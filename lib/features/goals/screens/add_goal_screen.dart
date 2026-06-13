@@ -74,9 +74,9 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
           children: [
             Text(
               'What are you saving for?',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             const SizedBox(height: 16),
             GridView.builder(
@@ -84,8 +84,8 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 5,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
               ),
               itemCount: _emojis.length,
               itemBuilder: (context, index) {
@@ -93,18 +93,20 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 final isSelected = emoji == _emoji;
                 return GestureDetector(
                   onTap: () => setState(() => _emoji = emoji),
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppTheme.primary.withValues(alpha: 0.08)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                          : AppTheme.surfaceContainerLowest,
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isSelected
                             ? AppTheme.primary
-                            : AppTheme.outlineVariant,
+                            : const Color(0xFFE8ECEA),
                         width: isSelected ? 2 : 1,
                       ),
+                      boxShadow: isSelected ? AppTheme.cardShadow : [],
                     ),
                     child: Center(
                       child: Text(emoji, style: const TextStyle(fontSize: 28)),
@@ -165,9 +167,10 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
+                  color: const Color(0xFFF4F6F5),
                   border: Border.all(
-                    color: AppTheme.outlineVariant,
+                    color: const Color(0xFFE8ECEA),
                     width: 1.5,
                   ),
                 ),

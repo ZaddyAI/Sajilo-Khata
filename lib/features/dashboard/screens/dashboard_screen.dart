@@ -62,18 +62,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildMonthSelector(ctx),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     _buildSummaryCards(ctx),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
                     _buildCharts(ctx),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     _buildDailySpendChart(ctx),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
                     _buildGoalsSummary(ctx),
                     const SizedBox(height: 24),
                     _buildRecentTransactions(ctx),
@@ -88,36 +88,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.background,
+              AppTheme.background.withValues(alpha: 0.95),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+      ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _greeting(),
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppTheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          Text('Sajilo Khata', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 2),
+          const Text(
+            'Sajilo Khata',
+            style: TextStyle(
+              fontFamily: 'Manrope',
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+            ),
+          ),
         ],
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline_rounded, size: 26),
-          color: AppTheme.primary,
-          tooltip: 'Add Transaction',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<TransactionBloc>(),
-                child: const AddTransactionScreen(),
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.add_rounded, size: 22),
+            color: AppTheme.primary,
+            tooltip: 'Add Transaction',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BlocProvider.value(
+                  value: context.read<TransactionBloc>(),
+                  child: const AddTransactionScreen(),
+                ),
               ),
             ),
           ),
         ),
-        const SizedBox(width: 8),
       ],
     );
   }
@@ -131,10 +159,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _selectedMonth.month == DateTime.now().month;
 
     return Container(
+      padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.surfaceContainerLow),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
       ),
       child: Row(
         children: [
@@ -158,10 +188,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
               child: Center(
                 child: Text(
-                  monthFormat.format(_selectedMonth).toUpperCase(),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  monthFormat.format(_selectedMonth),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 1.0,
                     color: AppTheme.onSurface,
                   ),
                 ),
@@ -199,60 +228,168 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return Column(
           children: [
-            // Net balance card
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: AppTheme.signatureGradient,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'NET BALANCE',
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppTheme.onPrimary.withValues(alpha: 0.7),
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${net < 0 ? '-' : ''}${CurrencyHelper.symbol}${CurrencyHelper.format(net.abs())}',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppTheme.onPrimary,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(
-                        child: _MiniStat(
-                          label: 'Income',
-                          value:
-                              '${CurrencyHelper.symbol}${CurrencyHelper.format(income)}',
-                          icon: Icons.south_west_rounded,
-                          onPrimary: true,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: AppTheme.onPrimary,
+                          size: 18,
                         ),
                       ),
-                      Container(
-                        width: 1,
-                        height: 32,
-                        color: AppTheme.onPrimary.withValues(alpha: 0.2),
-                      ),
-                      Expanded(
-                        child: _MiniStat(
-                          label: 'Expenses',
-                          value:
-                              '${CurrencyHelper.symbol}${CurrencyHelper.format(expense)}',
-                          icon: Icons.north_east_rounded,
-                          onPrimary: true,
+                      const SizedBox(width: 10),
+                      Text(
+                        'NET BALANCE',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                          color: AppTheme.onPrimary.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '${net < 0 ? '-' : ''}${CurrencyHelper.symbol}${CurrencyHelper.format(net.abs())}',
+                    style: const TextStyle(
+                      fontFamily: 'Manrope',
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.0,
+                      color: AppTheme.onPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_downward_rounded,
+                                  color: AppTheme.onPrimary,
+                                  size: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Income',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 11,
+                                      color: AppTheme.onPrimary.withValues(
+                                        alpha: 0.65,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${CurrencyHelper.symbol}${CurrencyHelper.format(income)}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Manrope',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.onPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 36,
+                          color: AppTheme.onPrimary.withValues(alpha: 0.15),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_upward_rounded,
+                                    color: AppTheme.onPrimary,
+                                    size: 14,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Expenses',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 11,
+                                        color: AppTheme.onPrimary.withValues(
+                                          alpha: 0.65,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${CurrencyHelper.symbol}${CurrencyHelper.format(expense)}',
+                                      style: const TextStyle(
+                                        fontFamily: 'Manrope',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.onPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -298,7 +435,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             value: e.value,
             showTitle: false,
             color: _getCategoryColor(e.key),
-            radius: 28,
+            radius: 30,
           );
         }).toList();
 
@@ -306,12 +443,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             color: AppTheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: AppTheme.cardShadow,
+            border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _SectionHeader(title: 'Spending by Category'),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.pie_chart_rounded,
+                      color: AppTheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Spending by Category',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 height: 180,
@@ -330,7 +491,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            topCategoryEntry.key.split(' ').first.toUpperCase(),
+                            topCategoryEntry.key.split(' ').first,
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: AppTheme.onSurfaceVariant,
@@ -342,7 +503,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             '${topCategoryPercentage.toStringAsFixed(0)}%',
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w800,
                                   color: AppTheme.onSurface,
                                   letterSpacing: -0.5,
                                 ),
@@ -354,38 +515,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              ...categoryTotals.entries.map((e) {
-                final percent = (e.value / totalExpense) * 100;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: _getCategoryColor(e.key),
-                          shape: BoxShape.circle,
+              Wrap(
+                spacing: 8,
+                runSpacing: 12,
+                children: categoryTotals.entries.map((e) {
+                  final percent = (e.value / totalExpense) * 100;
+                  return SizedBox(
+                    width: (MediaQuery.of(context).size.width - 96) / 2,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: _getCategoryColor(e.key),
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          e.key,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: AppTheme.onSurfaceVariant),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            e.key,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: AppTheme.onSurfaceVariant),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${percent.toStringAsFixed(0)}%',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                        Text(
+                          '${percent.toStringAsFixed(0)}%',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.onSurface,
+                              ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         );
@@ -438,12 +606,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             color: AppTheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: AppTheme.cardShadow,
+            border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _SectionHeader(title: 'Daily Spending (30 days)'),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.trending_down_rounded,
+                      color: AppTheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Daily Spending',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 20),
               SizedBox(
                 height: 180,
@@ -516,7 +708,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       show: true,
                       drawVerticalLine: false,
                       getDrawingHorizontalLine: (value) => FlLine(
-                        color: AppTheme.surfaceContainerLow,
+                        color: const Color(0xFFECEFED),
                         strokeWidth: 1,
                       ),
                     ),
@@ -529,8 +721,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             toY: spots[index].value,
                             color: spots[index].value > 0
                                 ? AppTheme.primary
-                                : AppTheme.surfaceContainerLow,
-                            width: 5,
+                                : const Color(0xFFECEFED),
+                            width: 6,
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(4),
                             ),
@@ -559,88 +751,155 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _SectionHeader(title: 'Savings Goals'),
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<GoalBloc>(),
-                        child: const GoalsListScreen(),
-                      ),
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.savings_rounded,
+                      color: AppTheme.primary,
+                      size: 18,
                     ),
                   ),
-                  child: const Text('View all'),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Text(
+                    'Savings Goals',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<GoalBloc>(),
+                          child: const GoalsListScreen(),
+                        ),
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('View all'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
             ...activeGoals.take(3).map((goal) {
               final daysLeft = goal.deadlineAD
                   .difference(DateTime.now())
                   .inDays;
-              final remaining = goal.targetAmount - goal.savedAmount;
               return Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(16),
+                  boxShadow: AppTheme.cardShadow,
+                  border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
                 ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        goal.emoji,
-                        style: const TextStyle(fontSize: 22),
-                      ),
-                    ),
-                  ),
-                  title: Text(goal.name),
-                  subtitle: Text(
-                    daysLeft > 0
-                        ? '$daysLeft days left · ${CurrencyHelper.symbol}${remaining.toStringAsFixed(0)} to go'
-                        : 'Deadline passed',
-                  ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<GoalBloc>(),
-                        child: GoalDetailScreen(initialGoal: goal),
-                      ),
-                    ),
-                  ),
-                  trailing: SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          value: goal.progressPercent,
-                          strokeWidth: 4,
-                          backgroundColor: AppTheme.surfaceContainerLow,
-                          color: AppTheme.primary,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<GoalBloc>(),
+                          child: GoalDetailScreen(initialGoal: goal),
                         ),
-                        Text(
-                          '${(goal.progressPercent * 100).toStringAsFixed(0)}%',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 9,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Center(
+                              child: Text(
+                                goal.emoji,
+                                style: const TextStyle(fontSize: 24),
                               ),
-                        ),
-                      ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  goal.name,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${CurrencyHelper.symbol}${CurrencyHelper.format(goal.savedAmount)} / ${CurrencyHelper.symbol}${CurrencyHelper.format(goal.targetAmount)}',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: AppTheme.onSurfaceVariant,
+                                      ),
+                                ),
+                                const SizedBox(height: 6),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: goal.progressPercent,
+                                    minHeight: 6,
+                                    backgroundColor: const Color(0xFFECEFED),
+                                    valueColor: const AlwaysStoppedAnimation(
+                                      AppTheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                '${(goal.progressPercent * 100).toStringAsFixed(0)}%',
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primary,
+                                    ),
+                              ),
+                              if (daysLeft > 0) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$daysLeft days',
+                                  style: Theme.of(context).textTheme.labelSmall
+                                      ?.copyWith(
+                                        color: AppTheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -667,29 +926,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _SectionHeader(title: 'Recent Transactions'),
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<TransactionBloc>(),
-                        child: const TransactionListScreen(),
-                      ),
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long_rounded,
+                      color: AppTheme.primary,
+                      size: 18,
                     ),
                   ),
-                  child: const Text('View all'),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Text(
+                    'Recent Transactions',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<TransactionBloc>(),
+                          child: const TransactionListScreen(),
+                        ),
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('View all'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: AppTheme.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: AppTheme.cardShadow,
+                border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
               ),
               child: Column(
                 children: List.generate(latestTxs.length, (i) {
@@ -697,55 +983,106 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   final isDebit = tx.type == TransactionType.debit;
                   return Column(
                     children: [
-                      ListTile(
-                        contentPadding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: isDebit
-                                ? AppTheme.error.withValues(alpha: 0.08)
-                                : AppTheme.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.vertical(
+                            top: i == 0
+                                ? const Radius.circular(16)
+                                : Radius.zero,
+                            bottom: i == latestTxs.length - 1
+                                ? const Radius.circular(16)
+                                : Radius.zero,
                           ),
-                          child: Icon(
-                            isDebit
-                                ? Icons.south_west_rounded
-                                : Icons.north_east_rounded,
-                            color: isDebit ? AppTheme.error : AppTheme.primary,
-                            size: 18,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider.value(
+                                value: context.read<TransactionBloc>(),
+                                child: AddTransactionScreen(transaction: tx),
+                              ),
+                            ),
                           ),
-                        ),
-                        title: Text(tx.category),
-                        subtitle: Text(
-                          tx.note ??
-                              tx.bank ??
-                              DateFormat('MMM dd').format(tx.dateAD),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: context.read<TransactionBloc>(),
-                              child: AddTransactionScreen(transaction: tx),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: isDebit
+                                        ? AppTheme.error.withValues(alpha: 0.08)
+                                        : AppTheme.primary.withValues(
+                                            alpha: 0.08,
+                                          ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    isDebit
+                                        ? Icons.south_west_rounded
+                                        : Icons.north_east_rounded,
+                                    color: isDebit
+                                        ? AppTheme.error
+                                        : AppTheme.primary,
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        tx.category,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        tx.note ??
+                                            tx.bank ??
+                                            DateFormat(
+                                              'MMM dd',
+                                            ).format(tx.dateAD),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '${isDebit ? '-' : '+'}${CurrencyHelper.symbol}${CurrencyHelper.format(tx.amount)}',
+                                  style: Theme.of(context).textTheme.labelLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: isDebit
+                                            ? AppTheme.error
+                                            : AppTheme.primary,
+                                      ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        trailing: Text(
-                          '${isDebit ? '-' : '+'}${CurrencyHelper.symbol}${CurrencyHelper.format(tx.amount)}',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: isDebit
-                                    ? AppTheme.error
-                                    : AppTheme.primary,
-                              ),
-                        ),
                       ),
                       if (i < latestTxs.length - 1)
-                        const Divider(height: 1, indent: 72, endIndent: 16),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 70),
+                          child: Divider(height: 1),
+                        ),
                     ],
                   );
                 }),
@@ -772,74 +1109,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'Groceries': const Color(0xFF8BA6A1),
     };
     return colors[category] ?? AppTheme.outlineVariant;
-  }
-}
-
-// ─── Reusable widgets ──────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final bool onPrimary;
-
-  const _MiniStat({
-    required this.label,
-    required this.value,
-    required this.icon,
-    this.onPrimary = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = onPrimary ? AppTheme.onPrimary : AppTheme.onSurface;
-    final subColor = onPrimary
-        ? AppTheme.onPrimary.withValues(alpha: 0.65)
-        : AppTheme.onSurfaceVariant;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: subColor, size: 16),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: subColor,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              Text(
-                value,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -874,15 +1143,24 @@ class _EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 40, color: AppTheme.outlineVariant),
-          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFECEFED),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, size: 28, color: AppTheme.outlineVariant),
+          ),
+          const SizedBox(height: 14),
           Text(title, style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 4),
           Text(
