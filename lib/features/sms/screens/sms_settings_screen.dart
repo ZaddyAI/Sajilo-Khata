@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:telephony/telephony.dart';
+import 'package:android_sms_reader/android_sms_reader.dart';
 
 import '../../../core/constants/app_theme.dart';
 import '../../../core/services/firebase_service.dart';
@@ -55,13 +55,14 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   Future<void> _scanSenders() async {
     setState(() => _isScanning = true);
     try {
-      final messages = await Telephony.instance.getInboxSms(
-        columns: [SmsColumn.ADDRESS],
+      final messages = await AndroidSMSReader.fetchMessages(
+        type: AndroidSMSType.inbox,
+        count: 1000,
       );
       final senders = <String>{};
       for (final msg in messages) {
-        if (msg.address != null && msg.address!.isNotEmpty) {
-          senders.add(msg.address!);
+        if (msg.address.isNotEmpty) {
+          senders.add(msg.address);
         }
       }
       if (mounted) {
@@ -544,22 +545,23 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
 
   Future<void> _doSync(DateTime fromDate) async {
     try {
-      final messages = await Telephony.instance.getInboxSms(
-        columns: [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE],
-        filter: SmsFilter.where(
-          SmsColumn.DATE,
-        ).greaterThan(fromDate.millisecondsSinceEpoch.toString()),
+      final allMessages = await AndroidSMSReader.fetchMessages(
+        type: AndroidSMSType.inbox,
+        count: 1000,
       );
+      final fromMs = fromDate.millisecondsSinceEpoch;
+      final messages = allMessages.where((msg) {
+        return msg.date >= fromMs;
+      }).toList();
       final selectedLower = _selectedGroups.map((g) => g.toLowerCase()).toSet();
       final filtered = messages.where((msg) {
-        final addr = msg.address?.toLowerCase() ?? '';
-        return selectedLower.any((g) => addr.contains(g));
+        return selectedLower.any((g) => msg.address.toLowerCase().contains(g));
       }).toList();
       int imported = 0;
       for (final msg in filtered) {
         final success = await SmsService().importSmsWithCheck(
-          msg.address ?? '',
-          msg.body ?? '',
+          msg.address,
+          msg.body,
         );
         if (success) imported++;
       }
