@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "437548364812-4dkdkc5gvs05hlnrrc6sqt336r097uot.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sajilokhata.app",
+            "certificate_hash": "10843ca3bc6b1dedecb8a7c38805aaa9f39bd669"
+          }
+        },
+        {
+          "client_id": "437548364812-k4eneq0l89n9u44g6mfj08lrq8raem50.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sajilokhata.app",
+            "certificate_hash": "62f698f33935c2badb7f001acc5e24698ef0d1cc"
+          }
+        },
+        {
           "client_id": "437548364812-gr0i8oigkuesqi5di6mp4trhsu8nebe0.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -31,10 +47,10 @@
               "client_type": 3
             },
             {
-              "client_id": "437548364812-svkpcvbvmn1osm50jh1lmo1t5el0e9jk.apps.googleusercontent.com",
+              "client_id": "437548364812-nurfp040n9h674gt2g26dc9qnm83q1ae.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.sajiloKhata"
+                "bundle_id": "com.sajilokhata.app"
               }
             }
           ]
