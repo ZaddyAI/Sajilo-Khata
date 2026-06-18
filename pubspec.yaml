@@ -2,7 +2,7 @@ name: sajilo_khata
 description: "Nepal SMS-based expense tracker with savings goals."
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.11.1
