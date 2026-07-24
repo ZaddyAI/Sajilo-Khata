@@ -1,18 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/firebase_service.dart';
-import '../models/transaction_model.dart';
+import '../../data/datasources/remote/firebase_firestore_datasource.dart';
+import '../../domain/entities/transaction.dart';
 
 class SmsService {
   static final SmsService _instance = SmsService._internal();
   factory SmsService() => _instance;
   SmsService._internal();
 
-  FirebaseService? _firebaseService;
+  FirebaseFirestoreDataSource? _firestore;
 
-  FirebaseService get firebaseService {
-    _firebaseService ??= FirebaseService.instance;
-    return _firebaseService!;
+  void setFirebaseDataSource(FirebaseFirestoreDataSource ds) {
+    _firestore = ds;
+  }
+
+  FirebaseFirestoreDataSource get _db {
+    _firestore ??= FirebaseFirestoreDataSource();
+    return _firestore!;
   }
 
   Map<String, dynamic>? parseSmsManual(String sender, String body) {
@@ -135,14 +139,12 @@ class SmsService {
 
     final duplicateKey =
         '${sender}_${parsed['amount']}_${parsed['description']}';
-    final isDuplicate = await firebaseService.checkDuplicateTransaction(
-      duplicateKey,
-    );
+    final isDuplicate = await _db.checkDuplicate(duplicateKey);
     if (isDuplicate) return false;
 
     final now = DateTime.now();
     final txDate = _extractDateFromBody(body) ?? now;
-    final tx = TransactionModel(
+    final tx = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       amount: parsed['amount'] as double,
       type: parsed['type'] as TransactionType,
@@ -155,7 +157,7 @@ class SmsService {
     );
 
     debugPrint('[SmsService] Importing with date: $txDate');
-    await firebaseService.addTransaction(duplicateKey, tx);
+    await _db.addTransaction(duplicateKey, tx);
     return true;
   }
 
@@ -169,7 +171,7 @@ class SmsService {
         debugPrint('[SmsService] No user logged in');
         return;
       }
-      autoTrackEnabled = await firebaseService.getSmsAutoTrack();
+      autoTrackEnabled = await _db.getSmsAutoTrack();
     } catch (e) {
       debugPrint('[SmsService] getSmsAutoTrack error: $e, defaulting to true');
     }
@@ -190,15 +192,13 @@ class SmsService {
     // Check for duplicate - use sender + amount + description as unique key
     final duplicateKey =
         '${sender}_${parsed['amount']}_${parsed['description']}';
-    final isDuplicate = await firebaseService.checkDuplicateTransaction(
-      duplicateKey,
-    );
+    final isDuplicate = await _db.checkDuplicate(duplicateKey);
     if (isDuplicate) {
       debugPrint('[SmsService] Duplicate transaction skipped: $duplicateKey');
       return;
     }
 
-    final tx = TransactionModel(
+    final tx = Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       amount: parsed['amount'] as double,
       type: parsed['type'] as TransactionType,
@@ -211,7 +211,7 @@ class SmsService {
     );
 
     debugPrint('[SmsService] Transaction added with date: $txDate');
-    await firebaseService.addTransaction(duplicateKey, tx);
+    await _db.addTransaction(duplicateKey, tx);
     debugPrint('[SmsService] Transaction added: ${tx.id}');
   }
 

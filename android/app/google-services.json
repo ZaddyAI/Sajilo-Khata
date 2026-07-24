@@ -7,25 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:437548364812:android:eff46648db272a2a1aaa29",
+        "mobilesdk_app_id": "1:437548364812:android:f568ccf76647f7371aaa29",
         "android_client_info": {
-          "package_name": "com.sajilokhata.app"
+          "package_name": "com.zaddyai.sajilokhata"
         }
       },
       "oauth_client": [
         {
-          "client_id": "437548364812-4dkdkc5gvs05hlnrrc6sqt336r097uot.apps.googleusercontent.com",
+          "client_id": "437548364812-hpqna7ch3orcq6i393asnrls89kdd1eg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.sajilokhata.app",
+            "package_name": "com.zaddyai.sajilokhata",
             "certificate_hash": "10843ca3bc6b1dedecb8a7c38805aaa9f39bd669"
           }
         },
         {
-          "client_id": "437548364812-k4eneq0l89n9u44g6mfj08lrq8raem50.apps.googleusercontent.com",
+          "client_id": "437548364812-og0gk948q0fj3j5hfgcbt7rj8g4plrpc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.sajilokhata.app",
+            "package_name": "com.zaddyai.sajilokhata",
             "certificate_hash": "62f698f33935c2badb7f001acc5e24698ef0d1cc"
           }
         },
@@ -47,10 +47,10 @@
               "client_type": 3
             },
             {
-              "client_id": "437548364812-nurfp040n9h674gt2g26dc9qnm83q1ae.apps.googleusercontent.com",
+              "client_id": "437548364812-g3rb0s23d25khv0mmp7ueniaro5ac6h7.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.sajilokhata.app"
+                "bundle_id": "com.zaddyai.sajilokhata"
               }
             }
           ]
