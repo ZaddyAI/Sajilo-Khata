@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../constants/app_theme.dart';
-import '../models/goal_model.dart';
+import '../../domain/entities/goal.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -110,47 +110,7 @@ class NotificationService {
     );
   }
 
-  Future<void> showGoalAchievedNotification(String goalName) async {
-    const androidDetails = AndroidNotificationDetails(
-      'goal_channel',
-      'Savings Goals',
-      channelDescription: 'Goal achievement notifications',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const details = NotificationDetails(android: androidDetails);
-
-    _localNotifications.show(
-      1,
-      'Goal Achieved!',
-      'Congratulations! You reached your "$goalName" goal!',
-      details,
-    );
-  }
-
-  Future<void> showBudgetAlert({
-    required double spent,
-    required double limit,
-  }) async {
-    final percent = ((spent / limit) * 100).toStringAsFixed(0);
-    const androidDetails = AndroidNotificationDetails(
-      'budget_channel',
-      'Budget Alerts',
-      channelDescription: 'Monthly budget notifications',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-    );
-    const details = NotificationDetails(android: androidDetails);
-
-    _localNotifications.show(
-      2,
-      'Budget Alert',
-      'You\'ve spent $percent% of your monthly budget',
-      details,
-    );
-  }
-
-  Future<void> showGoalCreatedNotification(GoalModel goal) async {
+  Future<void> showGoalCreatedNotification(Goal goal) async {
     const androidDetails = AndroidNotificationDetails(
       'goal_channel',
       'Savings Goals',
@@ -168,7 +128,7 @@ class NotificationService {
     );
   }
 
-  Future<void> showGoalCompletedNotification(GoalModel goal) async {
+  Future<void> showGoalCompletedNotification(Goal goal) async {
     const androidDetails = AndroidNotificationDetails(
       'goal_channel',
       'Savings Goals',
@@ -200,24 +160,6 @@ class NotificationService {
       999,
       'Data Synced',
       'Your data has been synced with the cloud',
-      details,
-    );
-  }
-
-  Future<void> showSyncPendingNotification(int count) async {
-    const androidDetails = AndroidNotificationDetails(
-      'sync_channel',
-      'Sync Status',
-      channelDescription: 'Data sync notifications',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-    );
-    const details = NotificationDetails(android: androidDetails);
-
-    _localNotifications.show(
-      998,
-      'Sync Pending',
-      '$count items waiting to sync when online',
       details,
     );
   }

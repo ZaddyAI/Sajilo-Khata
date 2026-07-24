@@ -6,6 +6,10 @@ Technical Documentation • v1.0
 
 Built with Flutter + Firebase • Supports all major Nepal banks & wallets • BS/AD dual calendar
 
+A product by **RedPixel Labs**
+
+---
+
 # **1\. Project Overview**
 
 Sajilo Khata is a Flutter mobile application that automatically tracks income and expenses by reading SMS messages from Nepali banks and digital wallets.
@@ -14,37 +18,37 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 
 ### Authentication
 
-|                  Login                   |                   Signup                   |
+| Login | Signup |
 | :--------------------------------------: | :----------------------------------------: |
 | ![Login](screenshots/auth/loginPage.png) | ![Signup](screenshots/auth/signupPage.png) |
 
 ### Dashboard
 
-|                    Main Dashboard                     |                       Monthly Summary                       |
+| Main Dashboard | Monthly Summary |
 | :---------------------------------------------------: | :---------------------------------------------------------: |
 | ![Dashboard](screenshots/dashboard/mainDashboard.png) | ![Summary](screenshots/dashboard/bottomPartofDashboard.png) |
 
 ### Transactions
 
-|                     Ledger                     |             Add Transaction              |               Transaction Details                |
+| Ledger | Add Transaction | Transaction Details |
 | :--------------------------------------------: | :--------------------------------------: | :----------------------------------------------: |
 | ![Ledger](screenshots/ledger/ledgerScreen.png) | ![Add](screenshots/ledger/addLedger.png) | ![Details](screenshots/ledger/ledgerDetails.png) |
 
 ### Savings Goals
 
-|                   Goals                    |                   Add Goal                    |                   Add Savings                    |                 Goal Details                  |
+| Goals | Add Goal | Add Savings | Goal Details |
 | :----------------------------------------: | :-------------------------------------------: | :----------------------------------------------: | :-------------------------------------------: |
 | ![Goals](screenshots/goals/goalScreen.png) | ![Add Goal](screenshots/goals/addNewGoal.png) | ![Add Savings](screenshots/goals/addSavings.png) | ![Details](screenshots/goals/goalDetails.png) |
 
 ### Profile & Settings
 
-|                      Profile                      |                SMS Auto-Track                |                      Sync Status                      |
+| Profile | SMS Auto-Track | Sync Status |
 | :-----------------------------------------------: | :------------------------------------------: | :---------------------------------------------------: |
 | ![Profile](screenshots/profile/profileScreen.png) | ![SMS](screenshots/profile/smsAutoTrack.png) | ![Sync](screenshots/profile/syncingWithFirestore.png) |
 
 ### Permissions
 
-|               Permission Request 1                |               Permission Request 2                |
+| Permission Request 1 | Permission Request 2 |
 | :-----------------------------------------------: | :-----------------------------------------------: |
 | ![Permissions](screenshots/askingPermission1.png) | ![Permissions](screenshots/askingPermission2.png) |
 
@@ -60,11 +64,12 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 | -------------------- | --------------------------------------- |
 | **UI Framework**     | Flutter 3.x (Dart)                      |
 | **State Management** | BLoC pattern (flutter_bloc)             |
+| **DI**               | RepositoryProvider + BlocProvider        |
 | **Authentication**   | Firebase Auth - Google + Email/Password |
 | **Database**         | Cloud Firestore (real-time sync)        |
 | **Local Cache**      | Hive (offline-first)                    |
 | **Sync Engine**      | Custom SyncService (online/offline)     |
-| **SMS Reading**      | telephony package (Android)             |
+| **SMS Reading**      | android_sms_reader (Android)            |
 | **Charts**           | fl_chart                                |
 | **Notifications**    | flutter_local_notifications + FCM       |
 | **Nepali Dates**     | nepali_calendar_kit (own package)       |
@@ -150,15 +155,17 @@ Sajilo Khata is a Flutter mobile application that automatically tracks income an
 
 # **3\. Project Structure**
 
-The project follows a feature-first architecture. Each feature is self-contained with its own screens, BLoC, repository, and widgets. Core utilities and models are shared across features.
+The project follows Clean Architecture with three layers (presentation, domain, data) plus a core shared layer.
 
 ## **3.1 Top-Level Structure**
 
 | **Path**                    | **Purpose**                                              |
 | --------------------------- | -------------------------------------------------------- |
-| lib/main.dart               | App entry point - Firebase init, BLoC providers, routing |
-| lib/core/                   | Shared code: models, services, utils, constants          |
-| lib/features/               | One folder per feature, self-contained                   |
+| lib/main.dart               | App entry point - Firebase init, MultiRepositoryProvider, MultiBlocProvider, app router |
+| lib/core/                   | Shared: constants, services, DI, network, utils, theme   |
+| lib/domain/                 | Entities, repository interfaces, use cases                |
+| lib/data/                   | Datasources (Firestore, Hive), repository implementations, data models |
+| lib/presentation/           | BLoCs, screens, routes, common widgets, DI providers     |
 | pubspec.yaml                | Package dependencies                                     |
 | android/AndroidManifest.xml | SMS permissions (READ_SMS, RECEIVE_SMS)                  |
 
@@ -166,46 +173,104 @@ The project follows a feature-first architecture. Each feature is self-contained
 
 | **Path**                                 | **Purpose**                                                   |
 | ---------------------------------------- | ------------------------------------------------------------- |
-| core/models/transaction_model.dart       | TransactionModel - data class + Firestore serialization       |
-| core/models/goal_model.dart              | GoalModel - includes progress/status calculations             |
-| core/services/firebase_service.dart      | All Firestore reads, writes, streams - single source of truth |
+| core/constants/app_theme.dart            | Light & dark MaterialTheme definitions                        |
+| core/constants/app_constants.dart        | App name, company name (RedPixel Labs)                        |
+| core/di/service_locator.dart             | Legacy singleton DI (migration target)                        |
+| core/network/network_info.dart           | Connectivity check abstraction                                |
+| core/services/firebase_service.dart      | Legacy Firestore CRUD (used by SMS parser)                    |
 | core/services/sms_service.dart           | SMS parsing, duplicate check, auto-import                     |
 | core/services/notification_service.dart  | Push notifications (FCM + local)                              |
 | core/services/sync_service.dart          | Offline/online sync orchestration                             |
 | core/services/local_storage_service.dart | Hive local cache for preferences                              |
 | core/services/exchange_rate_service.dart | USD ↔ NPR conversion via frankfurter.dev                      |
-| core/utils/categorizer.dart              | Keyword → category auto-assignment                            |
-| core/constants/app_theme.dart            | Light & dark MaterialTheme definitions                        |
+| core/models/goal_model.dart              | Legacy GoalModel (used by notification/sync services)         |
+| core/models/transaction_model.dart       | Legacy TransactionModel (used by SMS parser)                  |
 
-## **3.3 Features Layer**
+## **3.3 Domain Layer**
 
-| **Path**                                                   | **Purpose**                                                                    |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| features/auth/bloc/auth_bloc.dart                          | AuthBloc - Google/email login, logout, session check                           |
-| features/auth/bloc/auth_event.dart                         | Auth events (AuthCheckRequested, AuthLoginRequested, etc)                      |
-| features/auth/bloc/auth_state.dart                         | Auth states (AuthInitial, AuthLoading, AuthAuthenticated, AuthUnauthenticated) |
-| features/auth/screens/login_screen.dart                    | Login screen with Google + Email options                                       |
-| features/auth/screens/signup_screen.dart                   | Email signup screen                                                            |
-| features/auth/screens/profile_screen.dart                  | Profile management, logout                                                     |
-| features/auth/widgets/auth_widgets.dart                    | Reusable auth UI components                                                    |
-| features/sms/screens/sms_settings_screen.dart              | SMS senders filter, auto-toggle settings                                       |
-| features/transactions/bloc/transaction_bloc.dart           | TransactionBloc - add, edit, delete, list                                      |
-| features/transactions/bloc/transaction_event.dart          | Transaction events (Load, Add, Update, Delete)                                 |
-| features/transactions/bloc/transaction_state.dart          | Transaction states (Loading, Loaded, Error)                                    |
-| features/transactions/screens/transaction_list_screen.dart | Full transaction list with filters                                             |
-| features/transactions/screens/add_transaction_screen.dart  | Manual add/edit form                                                           |
-| features/transactions/widgets/transaction_tile.dart        | Individual transaction card UI                                                 |
-| features/goals/bloc/goal_bloc.dart                         | GoalBloc - create, contribute, status update                                   |
-| features/goals/bloc/goal_event.dart                        | Goal events (Load, Add, Contribute, Delete)                                    |
-| features/goals/bloc/goal_state.dart                        | Goal states (Loading, Loaded, Error)                                           |
-| features/goals/screens/goals_list_screen.dart              | All savings goals with progress                                                |
-| features/goals/screens/add_goal_screen.dart                | Create new goal form                                                           |
-| features/goals/screens/goal_detail_screen.dart             | Goal detail + contribution history                                             |
-| features/dashboard/screens/dashboard_screen.dart           | Monthly summary + charts + quick actions                                       |
+| **Path**                                           | **Purpose**                              |
+| -------------------------------------------------- | ---------------------------------------- |
+| domain/entities/goal.dart                          | Goal entity with progress calculations   |
+| domain/entities/transaction.dart                   | Transaction entity                       |
+| domain/repositories/i_auth_repository.dart         | Auth repository interface                |
+| domain/repositories/i_goal_repository.dart         | Goal repository interface                |
+| domain/repositories/i_transaction_repository.dart  | Transaction repository interface         |
+| domain/repositories/i_sync_repository.dart         | Sync repository interface                |
+| domain/usecases/auth/                              | CheckAuth, SignInEmail, SignInGoogle, SignOut, SignUpEmail |
+| domain/usecases/goals/                             | GetGoals, AddGoal, UpdateGoal, DeleteGoal, ContributeToGoal, RemoveContribution, EditContribution |
+| domain/usecases/transactions/                      | GetTransactions, AddTransaction, UpdateTransaction, DeleteTransaction |
+
+## **3.4 Data Layer**
+
+| **Path**                                           | **Purpose**                              |
+| -------------------------------------------------- | ---------------------------------------- |
+| data/datasources/local/hive_datasource.dart        | Hive local cache implementation          |
+| data/datasources/remote/firebase_auth_datasource.dart  | Firebase Auth wrapper                |
+| data/datasources/remote/firebase_firestore_datasource.dart | Firestore CRUD + streams         |
+| data/repositories/auth_repository_impl.dart        | Auth repository implementation           |
+| data/repositories/goal_repository_impl.dart        | Goal repository implementation           |
+| data/repositories/transaction_repository_impl.dart | Transaction repository implementation    |
+| data/repositories/sync_repository_impl.dart        | Sync repository implementation           |
+| data/models/goal_model.dart                        | Goal Firestore serialization helpers     |
+| data/models/transaction_model.dart                 | Transaction Firestore serialization helpers |
+
+## **3.5 Presentation Layer**
+
+Screens use the Dart `part` / `part of` pattern. Each screen group has a `group_imports.dart` barrel file containing all imports, and screen files use `part of 'group_imports.dart'`.
+
+After login, the splash screen navigates to `/home` which renders a `HomeScreen` scaffold with a 4-tab `BottomNavigationBar` (Dashboard, Transactions, Goals, Profile) using `IndexedStack` to preserve tab state when switching.
+
+### BLoCs
+
+| **Path**                                            | **Purpose**                              |
+| --------------------------------------------------- | ---------------------------------------- |
+| presentation/bloc/auth/auth_bloc.dart               | Auth state management                    |
+| presentation/bloc/auth/auth_event.dart              | Auth events                              |
+| presentation/bloc/auth/auth_state.dart              | Auth states                              |
+| presentation/bloc/transaction/transaction_bloc.dart | Transaction state management             |
+| presentation/bloc/transaction/transaction_event.dart| Transaction events                       |
+| presentation/bloc/transaction/transaction_state.dart| Transaction states                       |
+| presentation/bloc/goal/goal_bloc.dart               | Goal state management                    |
+| presentation/bloc/goal/goal_event.dart              | Goal events                              |
+| presentation/bloc/goal/goal_state.dart              | Goal states                              |
+
+### Screens (grouped by feature)
+
+| **Path**                                            | **Purpose**                              |
+| --------------------------------------------------- | ---------------------------------------- |
+| presentation/screens/home/home_imports.dart          | Home barrel (home.dart)                  |
+| presentation/screens/home/home.dart                 | Home scaffold with 4-tab BottomNavigationBar |
+| presentation/screens/splash/splash.dart             | Splash screen - auth check on startup    |
+| presentation/screens/auth/auth_imports.dart         | Auth barrel (login.dart, signup.dart)    |
+| presentation/screens/auth/login.dart                | Login screen                             |
+| presentation/screens/auth/signup.dart               | Email signup screen                      |
+| presentation/screens/auth/widgets/auth_widgets.dart | Auth UI components                       |
+| presentation/screens/dashboard/dashboard_imports.dart| Dashboard barrel                        |
+| presentation/screens/dashboard/dashboard.dart       | Monthly summary + charts + quick actions |
+| presentation/screens/transactions/transactions_imports.dart | Transactions barrel             |
+| presentation/screens/transactions/transaction_list.dart  | Full transaction list with filters |
+| presentation/screens/transactions/add_transaction.dart   | Manual add/edit form              |
+| presentation/screens/transactions/widgets/transaction_tile.dart | Individual transaction card    |
+| presentation/screens/goals/goals_imports.dart       | Goals barrel                             |
+| presentation/screens/goals/goals_list.dart          | All savings goals with progress          |
+| presentation/screens/goals/add_goal.dart            | Create new goal form                     |
+| presentation/screens/goals/goal_detail.dart         | Goal detail + contribution history       |
+| presentation/screens/profile/profile_imports.dart   | Profile barrel                           |
+| presentation/screens/profile/profile.dart           | Profile management, logout               |
+| presentation/screens/sms_settings/sms_settings_imports.dart | SMS Settings barrel             |
+| presentation/screens/sms_settings/sms_settings.dart | SMS senders filter, auto-toggle settings |
+
+### DI Providers
+
+| **Path**                                            | **Purpose**                              |
+| --------------------------------------------------- | ---------------------------------------- |
+| presentation/repository_providers.dart              | All RepositoryProvider definitions       |
+| presentation/bloc_providers.dart                    | All BlocProvider definitions             |
+| presentation/routes/app_router.dart                 | Named route generator                    |
 
 # **4\. Data Models**
 
-## **4.1 TransactionModel**
+## **4.1 Transaction (Domain Entity)**
 
 | **Field**     | **Type** | **Notes**                              |
 | ------------- | -------- | -------------------------------------- |
@@ -220,7 +285,7 @@ The project follows a feature-first architecture. Each feature is self-contained
 | **dateBS**    | String   | Bikram Sambat date (from calendar kit) |
 | **createdAt** | DateTime | Record creation timestamp              |
 
-## **4.2 GoalModel**
+## **4.2 Goal (Domain Entity)**
 
 | **Field**               | **Type** | **Notes**                            |
 | ----------------------- | -------- | ------------------------------------ |
@@ -243,7 +308,16 @@ users/{uid}/ profile: { name, currency, updatedAt } transactions/{txId}: { amoun
 
 ## **5.1 Firestore Security Rules**
 
-rules_version = '2'; service cloud.firestore { match /databases/{database}/documents { match /users/{userId}/{document=\*\*} { allow read, write: if request.auth != null && request.auth.uid == userId; } } }
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
 
 # **6\. SMS Parser**
 
@@ -267,13 +341,22 @@ rules_version = '2'; service cloud.firestore { match /databases/{database}/docum
 
 # **7\. Android Setup - SMS Permissions**
 
-Add the following to android/app/src/main/AndroidManifest.xml inside the &lt;manifest&gt; tag:
+Add the following to android/app/src/main/AndroidManifest.xml inside the <manifest> tag:
 
-&lt;uses-permission android:name="android.permission.READ_SMS"/&gt; &lt;uses-permission android:name="android.permission.RECEIVE_SMS"/&gt;
+```xml
+<uses-permission android:name="android.permission.READ_SMS"/>
+<uses-permission android:name="android.permission.RECEIVE_SMS"/>
+```
 
 Request permissions at runtime in Flutter:
 
-import 'package:permission_handler/permission_handler.dart'; future&lt;void&gt; requestSmsPermission() async { await Permission.sms.request(); }
+```dart
+import 'package:permission_handler/permission_handler.dart';
+
+Future<void> requestSmsPermission() async {
+  await Permission.sms.request();
+}
+```
 
 Important: Google Play Store requires a Privacy Policy URL and a declaration explaining why READ_SMS is needed. Prepare this before publishing. The review typically takes 3-7 business days.
 
@@ -292,23 +375,57 @@ The Categorizer utility in core/utils/categorizer.dart maps keywords in transact
 | **Remittance**      | imepay, western union, money transfer, sent to        |
 | **Salary / Income** | salary, payroll, wages, bonus                         |
 
-# **9\. Build Timeline (2 Weeks)**
+# **9\. Architecture Highlights**
 
-## **Week 1 - Core**
+## **9.1 Clean Architecture Layers**
 
-- Day 1-2: Firebase setup, Auth (Google + Email), Firestore rules
-- Day 3-4: TransactionModel, FirebaseService, Hive offline cache
-- Day 5-6: SMS parser for all 7 banks, SmsListenerService
-- Day 7: Manual add/edit/delete transaction screens
+```
+Presentation (BLoC + Screens)
+    ↕
+Domain (Entities + Use Cases + Repository Interfaces)
+    ↕
+Data (Repository Impls + Datasources + Models)
+```
 
-## **Week 2 - Polish**
+- **Domain** has zero Flutter/Firebase dependencies — pure Dart
+- **Data** implements domain interfaces, handles serialization
+- **Presentation** uses BLoC pattern with RepositoryProvider DI
 
-- Day 8-9: Dashboard - monthly summary
-- Day 10: Charts - pie chart by category, bar chart daily spend
-- Day 11-12: Savings goals - create, contribute, progress bar
-- Day 13: Push notifications - transaction logged, goal achieved
-- Day 14: CSV export, testing, bug fixes, README
+## **9.2 Offline-First Data Flow**
 
-This project demonstrates: advanced Flutter patterns, Firebase integration, background services, data parsing, chart rendering, and local/remote sync - all in a single coherent product targeting a real market gap.
+```
+User Action → BLoC → UseCase → Repository → Local Cache (Hive)
+                                               ↓ (if online)
+                                           Remote (Firestore)
+                                               ↓
+                                       Stream updates UI
+```
 
-Built by Gambhir Poudel • gambhirpoudel.com.np
+- On first install offline: shows empty state immediately (no infinite spinner)
+- On reconnect: SyncService detects connectivity change, syncs pending data
+- Hive provides instant reads, Firestore provides real-time updates
+
+## **9.3 Dependency Injection**
+
+```dart
+// lib/presentation/repository_providers.dart
+MultiRepositoryProvider(
+  providers: [
+    RepositoryProvider<FirebaseFirestoreDataSource>(...),
+    RepositoryProvider<HiveDataSource>(...),
+    RepositoryProvider<TransactionRepository>(...),
+    RepositoryProvider<GoalRepository>(...),
+  ],
+  child: MultiBlocProvider(
+    providers: [
+      BlocProvider<TransactionBloc>(...),
+      BlocProvider<GoalBloc>(...),
+    ],
+    child: MaterialApp(...),
+  ),
+)
+```
+
+This project demonstrates: Clean Architecture, Flutter BLoC patterns, Firebase integration, offline-first data flow, SMS parsing, chart rendering, push notifications, and cross-device sync — all targeting a real market gap in Nepal.
+
+Built by **RedPixel Labs** • gambhirpoudel.com.np
