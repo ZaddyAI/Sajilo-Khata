@@ -1,8 +1,88 @@
-environment:
-  vars:
-    GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+workflows:
+  android-play-internal:
+    name: Android - Google Play Internal Testing
 
-publishing:
-  google_play:
-    credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
-    track: internal
+    max_build_duration: 60
+
+    environment:
+      flutter: stable
+
+      # Google Play service-account credentials
+      groups:
+        - google_play_credentials
+
+      # Android release signing keystore uploaded to
+      # Codemagic Code signing identities
+      android_signing:
+        - sajilokhata_keystore
+
+    scripts:
+
+      # ------------------------------------------------
+      # 1. Install Flutter dependencies
+      # ------------------------------------------------
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      # ------------------------------------------------
+      # 2. Run tests
+      # ------------------------------------------------
+      - name: Run Flutter tests
+        script: |
+          flutter test
+
+      # ------------------------------------------------
+      # 3. Configure Android signing
+      # ------------------------------------------------
+      - name: Configure Android signing
+        script: |
+          cat > "$CM_BUILD_DIR/android/key.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=$CM_KEYSTORE_PATH
+          EOF
+
+      # ------------------------------------------------
+      # 4. Get the next Google Play version code
+      # ------------------------------------------------
+      - name: Calculate build number
+        script: |
+          set -e
+
+          LATEST_BUILD_NUMBER=$(google-play get-latest-build-number \
+            --package-name "$PACKAGE_NAME" \
+            --tracks="internal" || echo "0")
+
+          BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
+
+          echo "Latest Google Play build number: $LATEST_BUILD_NUMBER"
+          echo "New build number: $BUILD_NUMBER"
+
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$CM_ENV"
+
+      # ------------------------------------------------
+      # 5. Build signed Android App Bundle
+      # ------------------------------------------------
+      - name: Build Android App Bundle
+        script: |
+          set -e
+
+          flutter build appbundle \
+            --release \
+            --build-number="$BUILD_NUMBER"
+
+    # --------------------------------------------------
+    # Build artifacts
+    # --------------------------------------------------
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
+
+    # --------------------------------------------------
+    # Publish to Google Play Internal testing
+    # --------------------------------------------------
+    publishing:
+      google_play:
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
