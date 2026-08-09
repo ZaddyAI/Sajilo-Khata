@@ -34,10 +34,15 @@ class _HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: AppTheme.surfaceContainerLowest,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            border: const Border(
+              top: BorderSide(color: AppTheme.outlineVariant, width: 1),
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 12,
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 16,
+                spreadRadius: 0,
                 offset: const Offset(0, -2),
               ),
             ],
@@ -56,28 +61,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   type: BottomNavigationBarType.fixed,
                   backgroundColor: Colors.transparent,
                   elevation: 0,
-                  selectedItemColor: AppTheme.primary,
+                  selectedItemColor: AppTheme.secondary,
                   unselectedItemColor: AppTheme.onSurfaceVariant,
                   selectedFontSize: 11,
                   unselectedFontSize: 11,
                   selectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Inter',
+                    fontSize: 11,
                   ),
                   unselectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontFamily: 'Inter',
+                    fontSize: 11,
                   ),
                   items: const [
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.grid_view_rounded),
-                      activeIcon: Icon(Icons.grid_view_rounded),
-                      label: 'Dashboard',
+                      icon: Icon(Icons.home_outlined),
+                      activeIcon: Icon(Icons.home_rounded),
+                      label: 'Home',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.receipt_long_outlined),
                       activeIcon: Icon(Icons.receipt_long_rounded),
-                      label: 'Transactions',
+                      label: 'Ledger',
                     ),
                     BottomNavigationBarItem(
                       icon: Icon(Icons.savings_outlined),
@@ -87,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     BottomNavigationBarItem(
                       icon: Icon(Icons.person_outline_rounded),
                       activeIcon: Icon(Icons.person_rounded),
-                      label: 'Profile',
+                      label: 'Account',
                     ),
                   ],
                 ),

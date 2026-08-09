@@ -13,6 +13,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _currency = 'NPR';
   bool _isLoading = true;
   bool _isEditing = false;
+  bool _smsAutoTrack = true;
+  bool _isBS = true;
 
   @override
   void initState() {
@@ -28,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _nameController.text =
           prefs.getString('userName') ?? user.displayName ?? '';
       _currency = prefs.getString('currency') ?? 'NPR';
+      _isBS = prefs.getString('datePreference') != 'AD';
       try {
         final result = await context.read<AuthRepository>().getProfile();
         if (result.data != null) {
@@ -71,6 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userName', name);
     await prefs.setString('currency', _currency);
+    await prefs.setString('datePreference', _isBS ? 'BS' : 'AD');
     final currencyChanged = CurrencyHelper.currency != _currency;
     context.read<CurrencyNotifier>().setCurrency(_currency);
     setState(() => _isEditing = false);
@@ -85,150 +89,140 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _saveSmsSetting(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('smsAutoTrack', enabled);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final photoUrl = user?.photoURL;
+    final name = user?.displayName ?? user?.email ?? 'U';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          if (_isEditing)
-            TextButton(
-              onPressed: _saveProfile,
-              style: TextButton.styleFrom(foregroundColor: AppTheme.primary),
-              child: const Text('Save'),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Edit Profile',
-              onPressed: () => setState(() => _isEditing = true),
+        backgroundColor: AppTheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppTheme.outlineVariant),
+        ),
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.outline, width: 1),
+              ),
+              child: ClipOval(
+                child: photoUrl != null && photoUrl.isNotEmpty
+                    ? Image.network(
+                        photoUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppTheme.primaryContainer,
+                            child: Center(
+                              child: Text(
+                                initial,
+                                style: GoogleFonts.manrope(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: AppTheme.primaryContainer,
+                        child: Center(
+                          child: Text(
+                            initial,
+                            style: GoogleFonts.manrope(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
             ),
+            const SizedBox(width: 12),
+            Text(
+              'Sajilo Khata',
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, size: 24),
+                color: AppTheme.onSurfaceVariant,
+                onPressed: () {},
+              ),
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.error,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.surface, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primary),
             )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-              children: [
-                _buildProfileHeader(context),
-                const SizedBox(height: 20),
-                _buildSection(context, 'Personal Info', [
-                  _buildInfoTile(
-                    context,
-                    icon: Icons.person_outline_rounded,
-                    iconColor: AppTheme.primary,
-                    title: 'Name',
-                    trailing: _isEditing
-                        ? SizedBox(
-                            width: 160,
-                            child: TextFormField(
-                              controller: _nameController,
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                            ),
-                          )
-                        : Text(
-                            _nameController.text.isEmpty
-                                ? 'Set your name'
-                                : _nameController.text,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w500),
-                          ),
-                  ),
-                  const Divider(height: 1, indent: 52),
-                  _buildInfoTile(
-                    context,
-                    icon: Icons.email_outlined,
-                    iconColor: AppTheme.primary,
-                    title: 'Email',
-                    subtitle: _userEmail ?? '',
-                  ),
-                ]),
-                const SizedBox(height: 12),
-                _buildSection(context, 'Settings', [
-                  _buildSettingsTile(
-                    context,
-                    icon: Icons.currency_exchange_rounded,
-                    iconColor: AppTheme.primary,
-                    title: 'Currency',
-                    trailing: DropdownButton<String>(
-                      value: _currency,
-                      underline: const SizedBox.shrink(),
-                      onChanged: _isEditing
-                          ? (value) {
-                              if (value != null) {
-                                setState(() => _currency = value);
-                              }
-                            }
-                          : null,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'NPR', child: Text('NPR')),
-                        DropdownMenuItem(value: 'USD', child: Text('USD')),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1, indent: 52),
-                  _buildNavTile(
-                    context,
-                    icon: Icons.sms_outlined,
-                    iconColor: AppTheme.secondary,
-                    title: 'SMS Settings',
-                    subtitle: 'Auto-log expenses from SMS',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SmsSettingsScreen(),
-                      ),
-                    ),
-                  ),
-                ]),
-                const SizedBox(height: 12),
-                _buildSection(context, 'Account', [
-                  _buildNavTile(
-                    context,
-                    icon: Icons.sync_rounded,
-                    iconColor: AppTheme.secondary,
-                    title: 'Sync Data',
-                    subtitle: 'Fetch all data from Firestore',
-                    onTap: () => _syncData(context),
-                  ),
+          : SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+              child: Column(
+                children: [
+                  // Profile Card
+                  _buildProfileCard(),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _confirmSignOut(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.error,
-                        side: const BorderSide(
-                          color: AppTheme.error,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      icon: const Icon(Icons.logout_rounded, size: 18),
-                      label: const Text('Sign Out'),
-                    ),
-                  ),
-                ]),
-              ],
+
+                  // Settings Grid
+                  _buildSettingsGrid(),
+                  const SizedBox(height: 16),
+
+                  // Data & Security
+                  _buildDataSecuritySection(),
+                  const SizedBox(height: 24),
+
+                  // Footer
+                  _buildFooter(),
+                ],
+              ),
             ),
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileCard() {
     final initials = _nameController.text.isNotEmpty
         ? _nameController.text
               .trim()
@@ -240,244 +234,601 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppTheme.signatureGradient,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
       ),
       child: Column(
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.15),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 2,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                initials,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppTheme.onPrimary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1,
+          Stack(
+            children: [
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppTheme.primaryFixed, width: 4),
+                ),
+                child: ClipOval(
+                  child: Container(
+                    color: AppTheme.primaryContainer,
+                    child: Center(
+                      child: Text(
+                        initials,
+                        style: GoogleFonts.manrope(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    size: 16,
+                    color: AppTheme.onPrimary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            _nameController.text.isEmpty
-                ? 'Set your name'
-                : _nameController.text,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppTheme.onPrimary,
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 16),
+          if (_isEditing)
+            SizedBox(
+              width: 200,
+              child: TextFormField(
+                controller: _nameController,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface,
+                ),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                ),
+              ),
+            )
+          else
+            Text(
+              _nameController.text.isEmpty
+                  ? 'Set your name'
+                  : _nameController.text,
+              style: GoogleFonts.manrope(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.onSurface,
+              ),
             ),
-          ),
           const SizedBox(height: 4),
           Text(
             _userEmail ?? '',
-            style: TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 13,
-              color: AppTheme.onPrimary.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection(
-    BuildContext context,
-    String title,
-    List<Widget> children,
-  ) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+            style: GoogleFonts.inter(
+              fontSize: 14,
               color: AppTheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoTile(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    String? subtitle,
-    Widget? trailing,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
           Container(
-            width: 36,
-            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: AppTheme.secondaryContainer.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
+                const Icon(Icons.sync, size: 14, color: AppTheme.secondary),
+                const SizedBox(width: 6),
                 Text(
-                  title,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.onSurfaceVariant,
+                  'Last synced: 2 minutes ago',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.secondary,
                   ),
                 ),
-                if (subtitle != null)
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
               ],
             ),
           ),
-          ?trailing,
+          const SizedBox(height: 16),
+          if (_isEditing)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saveProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: AppTheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Save Profile',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => setState(() => _isEditing = true),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primary,
+                  side: const BorderSide(color: AppTheme.outlineVariant),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Edit Profile',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsTile(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required Widget trailing,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ),
-          trailing,
-        ],
-      ),
+  Widget _buildSettingsGrid() {
+    return Row(
+      children: [
+        Expanded(child: _buildGeneralPreferencesCard()),
+        const SizedBox(width: 12),
+        Expanded(child: _buildBankFiltersCard()),
+      ],
     );
   }
 
-  Widget _buildNavTile(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    String? subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+  Widget _buildGeneralPreferencesCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: iconColor, size: 18),
+                child: const Icon(
+                  Icons.settings,
+                  size: 16,
+                  color: AppTheme.onPrimaryContainer,
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'General',
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          // SMS Auto-Tracking
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
+                      'SMS Auto-Track',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.onSurface,
                       ),
                     ),
-                    if (subtitle != null)
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodySmall,
+                    Text(
+                      'Parse SMS automatically',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppTheme.onSurfaceVariant,
                       ),
+                    ),
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppTheme.onSurfaceVariant,
-                size: 20,
+              Switch(
+                value: _smsAutoTrack,
+                onChanged: (v) {
+                  setState(() => _smsAutoTrack = v);
+                  _saveSmsSetting(v);
+                },
+                activeColor: AppTheme.onSecondary,
+                activeTrackColor: AppTheme.secondary,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+          // SMS Settings Link
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => Navigator.pushNamed(context, '/sms_settings'),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.sms_outlined,
+                      size: 18,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Advanced SMS Settings',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Date Preference
+          Text(
+            'Date Format',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isBS = true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _isBS ? AppTheme.primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        'BS',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _isBS
+                              ? AppTheme.onPrimary
+                              : AppTheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isBS = false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: !_isBS ? AppTheme.primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        'AD',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: !_isBS
+                              ? AppTheme.onPrimary
+                              : AppTheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _syncData(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Syncing data...')));
-    await context.read<SyncRepository>().syncAll();
-    if (context.mounted) {
-      messenger.clearSnackBars();
-      messenger.showSnackBar(const SnackBar(content: Text('Sync complete!')));
-    }
+  Widget _buildBankFiltersCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.account_balance,
+                  size: 16,
+                  color: AppTheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Banks',
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 24),
+          _buildBankCheckbox('Nabil Bank'),
+          _buildBankCheckbox('Global IME Bank'),
+          _buildBankCheckbox('NIC Asia Bank'),
+          _buildBankCheckbox('Nepal Investment'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBankCheckbox(String bankName) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: Checkbox(
+              value: true,
+              onChanged: (v) {},
+              activeColor: AppTheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              bankName,
+              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.onSurface),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDataSecuritySection() {
+    return Column(
+      children: [
+        // Export Data
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.outlineVariant, width: 1),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {},
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryFixed,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.download,
+                        size: 18,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Export Data',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Logout
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.outlineVariant, width: 1),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _confirmSignOut(context),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.logout,
+                        size: 18,
+                        color: AppTheme.onTertiaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Sign Out',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.onTertiaryContainer,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        Text(
+          'SAJILO KHATA V2.4.0',
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.15,
+            color: AppTheme.outline,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Made with precision for your financial growth.',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppTheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'A Product of ',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppTheme.onSurfaceVariant,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Image.asset(
+                'assets/redpixellabs.png',
+                height: 20,
+                errorBuilder: (context, error, stackTrace) {
+                  return Text(
+                    'RedPixel Labs',
+                    style: GoogleFonts.manrope(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   void _confirmSignOut(BuildContext context) {

@@ -5,8 +5,104 @@ class GoalsListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final photoUrl = user?.photoURL;
+    final name = user?.displayName ?? user?.email ?? 'U';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Savings Goals')),
+      backgroundColor: AppTheme.surface,
+      appBar: AppBar(
+        backgroundColor: AppTheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppTheme.outlineVariant),
+        ),
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.outline, width: 1),
+              ),
+              child: ClipOval(
+                child: photoUrl != null && photoUrl.isNotEmpty
+                    ? Image.network(
+                        photoUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppTheme.primaryContainer,
+                            child: Center(
+                              child: Text(
+                                initial,
+                                style: GoogleFonts.manrope(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: AppTheme.primaryContainer,
+                        child: Center(
+                          child: Text(
+                            initial,
+                            style: GoogleFonts.manrope(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Sajilo Khata',
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, size: 24),
+                color: AppTheme.onSurfaceVariant,
+                onPressed: () {},
+              ),
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.error,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.surface, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: BlocBuilder<GoalBloc, GoalState>(
         builder: (context, state) {
           if (state is GoalLoading) {
@@ -16,56 +112,62 @@ class GoalsListScreen extends StatelessWidget {
           }
 
           if (state is GoalLoaded) {
-            if (state.goals.isEmpty) {
-              return _buildEmpty(context);
-            }
-
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-              children: [
-                if (state.activeGoals.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 12),
-                    child: Text(
-                      'Active Goals',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+            return CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeader(context)),
+                if (state.goals.isNotEmpty)
+                  SliverToBoxAdapter(child: _buildSummaryStats(state)),
+                if (state.goals.isEmpty)
+                  SliverToBoxAdapter(child: _buildEmpty(context))
+                else ...[
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        'Active Goals',
+                        style: GoogleFonts.manrope(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.onSurface,
+                        ),
                       ),
                     ),
                   ),
-                  ...state.activeGoals.map(
-                    (goal) => _GoalCard(
-                      goal: goal,
-                      onTap: () => _openGoalDetail(context, goal),
-                    ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: _buildGoalsGrid(state.activeGoals),
                   ),
-                  const SizedBox(height: 24),
-                ],
-                if (state.achievedGoals.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 12),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.emoji_events_rounded,
-                          size: 18,
-                          color: AppColors.achieved,
+                  if (state.achievedGoals.isNotEmpty) ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                      sliver: SliverToBoxAdapter(
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.emoji_events_rounded,
+                              size: 18,
+                              color: AppColors.achieved,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Achieved',
+                              style: GoogleFonts.manrope(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Achieved',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  ...state.achievedGoals.map(
-                    (goal) => _GoalCard(
-                      goal: goal,
-                      onTap: () => _openGoalDetail(context, goal),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: _buildGoalsGrid(state.achievedGoals),
                     ),
-                  ),
+                  ],
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ],
             );
@@ -74,23 +176,136 @@ class GoalsListScreen extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80),
-        child: FloatingActionButton.extended(
-          heroTag: 'goal_fab',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<GoalBloc>(),
-                child: const AddGoalScreen(),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Savings Goals',
+                  style: GoogleFonts.manrope(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                    letterSpacing: -0.02,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Track your progress towards financial freedom.',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BlocProvider.value(
+                  value: context.read<GoalBloc>(),
+                  child: const AddGoalScreen(),
+                ),
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: AppTheme.onPrimary,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.add_circle, size: 20),
+            label: Text(
+              'Add Goal',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.05,
               ),
             ),
           ),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('New Goal'),
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildSummaryStats(GoalLoaded state) {
+    final totalSaved = state.goals.fold(0.0, (sum, g) => sum + g.savedAmount);
+    final totalTarget = state.goals.fold(0.0, (sum, g) => sum + g.targetAmount);
+    final activeCount = state.activeGoals.length;
+    final onTrackCount = state.activeGoals
+        .where((g) => g.status == GoalStatus.onTrack)
+        .length;
+    final onTrackPercent = activeCount > 0 ? onTrackCount / activeCount : 0.0;
+    final avgProgress = state.goals.isNotEmpty
+        ? state.goals.fold(0.0, (sum, g) => sum + g.progressPercent) /
+              state.goals.length *
+              100
+        : 0.0;
+    final savedPercent = totalTarget > 0
+        ? (totalSaved / totalTarget * 100)
+        : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+      child: Column(
+        children: [
+          _StatCard(
+            label: 'TOTAL SAVED',
+            value:
+                '${CurrencyHelper.symbol}${CurrencyHelper.format(totalSaved)}',
+            color: AppTheme.secondary,
+            badge: '+${savedPercent.toStringAsFixed(0)}%',
+            badgeColor: AppTheme.secondaryContainer,
+          ),
+          const SizedBox(height: 16),
+          _StatCard(
+            label: 'ACTIVE GOALS',
+            value: '$activeCount Goals',
+            color: AppTheme.primary,
+            showProgress: true,
+            progress: onTrackPercent,
+          ),
+          const SizedBox(height: 16),
+          _StatCard(
+            label: 'AVERAGE PROGRESS',
+            value: '${avgProgress.toStringAsFixed(1)}%',
+            color: AppTheme.primary,
+            showProgress: true,
+            progress: avgProgress / 100,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalsGrid(List<Goal> goals) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final goal = goals[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: _GoalCard(
+            goal: goal,
+            onTap: () => _openGoalDetail(context, goal),
+          ),
+        );
+      }, childCount: goals.length),
     );
   }
 
@@ -105,8 +320,9 @@ class GoalsListScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFFECEFED),
-                borderRadius: BorderRadius.circular(24),
+                color: AppTheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.outlineVariant, width: 1),
               ),
               child: const Icon(
                 Icons.savings_outlined,
@@ -117,12 +333,17 @@ class GoalsListScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               'No savings goals yet',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: GoogleFonts.manrope(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Set a goal and start building\nyour financial future',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: GoogleFonts.inter(
+                fontSize: 14,
                 color: AppTheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
@@ -134,13 +355,153 @@ class GoalsListScreen extends StatelessWidget {
   }
 
   void _openGoalDetail(BuildContext context, Goal goal) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<GoalBloc>(),
-          child: GoalDetailScreen(initialGoal: goal),
+    if (goal.status == GoalStatus.achieved) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider.value(
+            value: context.read<GoalBloc>(),
+            child: GoalAchievedScreen(goal: goal),
+          ),
         ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider.value(
+            value: context.read<GoalBloc>(),
+            child: GoalDetailScreen(initialGoal: goal),
+          ),
+        ),
+      );
+    }
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final String? badge;
+  final Color? badgeColor;
+  final bool showProgress;
+  final double progress;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    this.badge,
+    this.badgeColor,
+    this.showProgress = false,
+    this.progress = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 128,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.05,
+              color: AppTheme.onSurfaceVariant,
+            ),
+          ),
+          if (showProgress) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: AppTheme.surfaceContainer,
+                valueColor: AlwaysStoppedAnimation(color),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${(progress * 100).toStringAsFixed(0)}% on track',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ] else if (badge != null)
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.manrope(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeColor ?? AppTheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    badge!,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.onSecondaryContainer,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -155,118 +516,208 @@ class _GoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final daysLeft = goal.deadlineAD.difference(DateTime.now()).inDays;
-    final statusColor = switch (goal.status) {
-      GoalStatus.onTrack => AppTheme.primary,
-      GoalStatus.behind => AppTheme.error,
-      GoalStatus.achieved => AppTheme.secondary,
-    };
-    final statusLabel = switch (goal.status) {
-      GoalStatus.onTrack => 'On Track',
-      GoalStatus.behind => 'Behind',
-      GoalStatus.achieved => 'Achieved',
-    };
+    final isOnTrack = goal.status == GoalStatus.onTrack;
+    final statusLabel = isOnTrack ? 'On Track' : 'Off Track';
+    final progressColor = isOnTrack
+        ? AppTheme.secondary
+        : AppTheme.onTertiaryContainer;
+
+    final estimatedDate =
+        '${['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][goal.deadlineAD.month]} ${goal.deadlineAD.year}';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: Center(
-                        child: Text(
-                          goal.emoji,
-                          style: const TextStyle(fontSize: 24),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            goal.name,
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w700),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceContainer,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${CurrencyHelper.symbol}${CurrencyHelper.format(goal.savedAmount)} / ${CurrencyHelper.symbol}${CurrencyHelper.format(goal.targetAmount)}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppTheme.onSurfaceVariant),
+                          child: Center(
+                            child: Text(
+                              goal.emoji,
+                              style: const TextStyle(fontSize: 30),
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        statusLabel,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: statusColor,
-                          fontWeight: FontWeight.w700,
                         ),
-                      ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              goal.name,
+                              style: GoogleFonts.manrope(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primary,
+                                height: 1.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isOnTrack
+                                    ? AppTheme.secondaryContainer
+                                    : AppTheme.errorContainer,
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: Text(
+                                statusLabel.toUpperCase(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.05,
+                                  color: isOnTrack
+                                      ? AppTheme.onSecondaryContainer
+                                      : AppTheme.onErrorContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Icon(
+                      Icons.more_vert,
+                      color: AppTheme.onSurfaceVariant,
+                      size: 24,
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SAVED',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.05,
+                            color: AppTheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          '${CurrencyHelper.symbol}${CurrencyHelper.format(goal.savedAmount)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: progressColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'TARGET',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.05,
+                            color: AppTheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          '${CurrencyHelper.symbol}${CurrencyHelper.format(goal.targetAmount)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: AppTheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(99),
                   child: LinearProgressIndicator(
                     value: goal.progressPercent,
-                    minHeight: 8,
-                    backgroundColor: const Color(0xFFECEFED),
-                    valueColor: AlwaysStoppedAnimation(statusColor),
+                    minHeight: 16,
+                    backgroundColor: AppTheme.surfaceContainer,
+                    valueColor: AlwaysStoppedAnimation(progressColor),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${(goal.progressPercent * 100).toStringAsFixed(0)}% complete',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.onSurfaceVariant,
+                    Flexible(
+                      child: Text(
+                        '${(goal.progressPercent * 100).toStringAsFixed(0)}% achieved',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                    if (goal.status != GoalStatus.achieved && daysLeft > 0)
-                      Text(
-                        '$daysLeft days left \u00B7 ${CurrencyHelper.symbol}${CurrencyHelper.format(goal.requiredDailyAmount)}/day',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.onSurfaceVariant,
+                    if (!isOnTrack && daysLeft > 0)
+                      Flexible(
+                        child: Text(
+                          'Add ${CurrencyHelper.symbol}${CurrencyHelper.format(goal.targetAmount - goal.savedAmount)} to resume',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.onTertiaryContainer,
+                          ),
+                          textAlign: TextAlign.end,
+                        ),
+                      )
+                    else if (daysLeft > 0)
+                      Flexible(
+                        child: Text(
+                          'Est. $estimatedDate',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.end,
                         ),
                       ),
                   ],

@@ -8,10 +8,12 @@ class AuthFieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     label,
-    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+    style: const TextStyle(
+      fontFamily: 'Inter',
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.05,
       color: AppTheme.onSurface,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.1,
     ),
   );
 }
@@ -27,7 +29,7 @@ class AuthErrorBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: AppTheme.errorContainer,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AppTheme.error.withValues(alpha: 0.2),
           width: 1,
@@ -44,7 +46,7 @@ class AuthErrorBanner extends StatelessWidget {
             child: const Icon(
               Icons.error_outline_rounded,
               color: AppTheme.error,
-              size: 14,
+              size: 16,
             ),
           ),
           const SizedBox(width: 10),
@@ -85,7 +87,7 @@ class AuthPrimaryButton extends StatelessWidget {
           backgroundColor: AppTheme.primary,
           foregroundColor: AppTheme.onPrimary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(8),
           ),
           elevation: 0,
         ),
@@ -125,9 +127,9 @@ class AuthOrDivider extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'or',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppTheme.outlineVariant,
+            ),
           ),
         ),
         const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
@@ -154,7 +156,7 @@ class AuthGoogleButton extends StatelessWidget {
         onPressed: loading ? null : onPressed,
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(8),
           ),
           side: const BorderSide(color: AppTheme.outlineVariant, width: 1.5),
           foregroundColor: AppTheme.onSurface,

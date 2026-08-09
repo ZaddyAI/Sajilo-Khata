@@ -114,14 +114,7 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: AppTheme.signatureGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
       ),
       child: Row(
         children: [
@@ -174,9 +167,8 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.cardShadow,
-        border: Border.all(color: const Color(0xFFF0F2F1), width: 1),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,8 +183,8 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFFECEFED),
-              borderRadius: BorderRadius.circular(12),
+              color: AppTheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(AppTheme.chipRadius),
             ),
             child: Row(
               children: [
@@ -206,16 +198,25 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
                         color: _manualOnly
                             ? AppTheme.surfaceContainerLowest
                             : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: _manualOnly ? AppTheme.cardShadow : [],
+                        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                        boxShadow: _manualOnly ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ] : [],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Manual',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
+                            color: _manualOnly
+                                ? AppTheme.primary
+                                : AppTheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -232,16 +233,25 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
                         color: !_manualOnly
                             ? AppTheme.surfaceContainerLowest
                             : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: !_manualOnly ? AppTheme.cardShadow : [],
+                        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                        boxShadow: !_manualOnly ? [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ] : [],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Automatic',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
+                            color: !_manualOnly
+                                ? AppTheme.primary
+                                : AppTheme.onSurfaceVariant,
                           ),
                         ),
                       ),
@@ -285,8 +295,9 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4F6F5),
+                  color: AppTheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.outlineVariant, width: 1),
                 ),
                 child: Row(
                   children: [
@@ -334,6 +345,15 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
                     },
                     selectedColor: AppTheme.primary.withValues(alpha: 0.12),
                     checkmarkColor: AppTheme.primary,
+                    side: BorderSide(
+                      color: isSelected
+                          ? AppTheme.primary.withValues(alpha: 0.3)
+                          : AppTheme.outlineVariant,
+                      width: 1,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                    ),
                   );
                 }).toList(),
               ),
@@ -400,7 +420,9 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
       onPressed: onTap,
       backgroundColor: AppTheme.primary.withValues(alpha: 0.06),
       side: const BorderSide(color: AppTheme.primary, width: 1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+      ),
     );
   }
 
@@ -428,15 +450,16 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
+              color: bgColor,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: iconColor, size: 20),
