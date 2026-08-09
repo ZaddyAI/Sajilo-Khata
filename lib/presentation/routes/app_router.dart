@@ -37,6 +37,9 @@ class AppRouter {
       case '/goal_detail':
         final goal = settings.arguments as Goal;
         return MaterialPageRoute(builder: (_) => GoalDetailScreen(initialGoal: goal));
+      case '/goal_achieved':
+        final goal = settings.arguments as Goal;
+        return MaterialPageRoute(builder: (_) => GoalAchievedScreen(goal: goal));
       default:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
     }

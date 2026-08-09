@@ -18,13 +18,30 @@ class TransactionListScreen extends StatefulWidget {
 class _TransactionListScreenState extends State<TransactionListScreen> {
   TransactionFilterBy _currentFilter = TransactionFilterBy.all;
   DateSpan? _dateFilter;
+  String? _selectedCategory;
   bool _initialized = false;
+
+  static const _categories = [
+    'Food & Dining',
+    'Transport',
+    'Shopping',
+    'Utilities',
+    'Health',
+    'Education',
+    'Remittance / Transfer',
+    'Salary / Income',
+    'Savings',
+    'Entertainment',
+    'Groceries',
+    'Other',
+  ];
 
   @override
   void initState() {
     super.initState();
     _currentFilter = TransactionFilterBy.all;
     _dateFilter = null;
+    _selectedCategory = null;
   }
 
   @override
@@ -35,26 +52,106 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       _dateFilter = null;
     }
 
+    final user = FirebaseAuth.instance.currentUser;
+    final photoUrl = user?.photoURL;
+    final name = user?.displayName ?? user?.email ?? 'U';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+
     return Scaffold(
+      backgroundColor: AppTheme.surface,
       appBar: AppBar(
-        title: const Text('Ledger'),
+        backgroundColor: AppTheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 1, color: AppTheme.outlineVariant),
+        ),
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.outline, width: 1),
+              ),
+              child: ClipOval(
+                child: photoUrl != null && photoUrl.isNotEmpty
+                    ? Image.network(
+                        photoUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppTheme.primaryContainer,
+                            child: Center(
+                              child: Text(
+                                initial,
+                                style: GoogleFonts.manrope(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: AppTheme.primaryContainer,
+                        child: Center(
+                          child: Text(
+                            initial,
+                            style: GoogleFonts.manrope(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Sajilo Khata',
+              style: GoogleFonts.manrope(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
+              ),
+            ),
+          ],
+        ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 4),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.tune_rounded, size: 20),
-              tooltip: 'Filter',
-              onPressed: () => _showFilterSheet(context),
-            ),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_outlined, size: 24),
+                color: AppTheme.onSurfaceVariant,
+                onPressed: () {},
+              ),
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppTheme.error,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.surface, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
             ),
             elevation: 8,
             onSelected: (value) {
@@ -101,62 +198,193 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             final filteredTransactions = _filterTransactions(
               state.transactions,
             );
-            if (filteredTransactions.isEmpty) {
-              return _buildEmpty(context);
-            }
-            final grouped = _groupByDate(filteredTransactions);
-            final labels = grouped.keys.toList();
-            return ListView.builder(
-              padding: const EdgeInsets.only(top: 8, bottom: 120),
-              itemCount: labels.length,
-              itemBuilder: (context, index) {
-                final label = labels[index];
-                final txs = grouped[label]!;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Text(
-                        label,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: AppTheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    ...txs.map(
-                      (tx) => TransactionTile(
-                        transaction: tx,
-                        onTap: () => _showTransactionDetails(context, tx),
-                        onDelete: () => _confirmDelete(context, tx),
-                      ),
-                    ),
-                  ],
-                );
-              },
+            return Column(
+              children: [
+                // Inline Filter Chips
+                _buildFilterChips(),
+                // Summary Cards
+                _buildSummaryCards(filteredTransactions),
+                // Transaction List
+                Expanded(
+                  child: filteredTransactions.isEmpty
+                      ? _buildEmpty(context)
+                      : _buildTransactionList(filteredTransactions),
+                ),
+              ],
             );
           }
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80),
-        child: FloatingActionButton.extended(
-          heroTag: 'transaction_fab',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<TransactionBloc>(),
-                child: const AddTransactionScreen(),
-              ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'transaction_fab',
+        backgroundColor: AppTheme.secondary,
+        foregroundColor: AppTheme.onSecondary,
+        shape: const CircleBorder(),
+        elevation: 4,
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BlocProvider.value(
+              value: context.read<TransactionBloc>(),
+              child: const AddTransactionScreen(),
             ),
           ),
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Add'),
         ),
+        child: const Icon(Icons.add_rounded, size: 28),
       ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          _InlineFilterChip(
+            icon: Icons.calendar_month,
+            label: _dateFilter != null
+                ? '${DateFormat('MMM dd').format(_dateFilter!.from)} - ${DateFormat('MMM dd').format(_dateFilter!.to)}'
+                : 'Date Range',
+            hasDropdown: true,
+            onTap: () => _showDateRangePicker(context),
+            isActive: _dateFilter != null,
+          ),
+          const SizedBox(width: 8),
+          _InlineFilterChip(
+            icon: Icons.category,
+            label: _selectedCategory ?? 'Category',
+            hasDropdown: true,
+            onTap: () => _showCategoryFilter(context),
+            isActive: _selectedCategory != null,
+          ),
+          const SizedBox(width: 8),
+          _InlineFilterChip(
+            icon: Icons.filter_list,
+            label: _currentFilter == TransactionFilterBy.all
+                ? 'All Types'
+                : _currentFilter == TransactionFilterBy.expense
+                ? 'Expenses'
+                : 'Income',
+            hasDropdown: true,
+            onTap: () => _showTypeFilter(context),
+            isActive: _currentFilter != TransactionFilterBy.all,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards(List<Transaction> transactions) {
+    double income = 0;
+    double expense = 0;
+    for (final tx in transactions) {
+      if (tx.type == TransactionType.credit) {
+        income += tx.amount;
+      } else {
+        expense += tx.amount;
+      }
+    }
+    final net = income - expense;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SummaryCard(
+              label: 'Current Balance',
+              amount: net,
+              isPositive: net >= 0,
+              icon: Icons.account_balance_wallet,
+              color: AppTheme.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _SummaryCard(
+              label: 'Income',
+              amount: income,
+              isPositive: true,
+              icon: Icons.arrow_upward,
+              color: AppTheme.secondary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _SummaryCard(
+              label: 'Expenses',
+              amount: expense,
+              isPositive: false,
+              icon: Icons.arrow_downward,
+              color: AppTheme.onTertiaryContainer,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionList(List<Transaction> transactions) {
+    final grouped = _groupByDate(transactions);
+    final labels = grouped.keys.toList();
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8, bottom: 120),
+      itemCount: labels.length,
+      itemBuilder: (context, index) {
+        final label = labels[index];
+        final txs = grouped[label]!;
+
+        double groupTotal = 0;
+        for (final tx in txs) {
+          if (tx.type == TransactionType.debit) {
+            groupTotal -= tx.amount;
+          } else {
+            groupTotal += tx.amount;
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.manrope(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                  Text(
+                    '${groupTotal >= 0 ? '+' : ''}${CurrencyHelper.symbol}${CurrencyHelper.format(groupTotal.abs())}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: groupTotal >= 0
+                          ? AppTheme.secondary
+                          : AppTheme.onTertiaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ...txs.map(
+              (tx) => TransactionTile(
+                transaction: tx,
+                onTap: () => _showTransactionDetails(context, tx),
+                onDelete: () => _confirmDelete(context, tx),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -184,7 +412,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFFECEFED),
+                color: AppTheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Icon(
@@ -196,12 +424,18 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             const SizedBox(height: 20),
             Text(
               'No transactions yet',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: GoogleFonts.manrope(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Add a transaction manually or\nwait for an SMS to be parsed',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
                 color: AppTheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
@@ -235,12 +469,18 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             const SizedBox(height: 20),
             Text(
               'Something went wrong',
-              style: Theme.of(context).textTheme.titleMedium,
+              style: GoogleFonts.manrope(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
                 color: AppTheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
@@ -258,155 +498,167 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  void _showFilterSheet(BuildContext context) {
+  void _showDateRangePicker(BuildContext context) async {
+    final from = await showDatePicker(
+      context: context,
+      initialDate: _dateFilter?.from ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (from != null && context.mounted) {
+      final to = await showDatePicker(
+        context: context,
+        initialDate: _dateFilter?.to ?? DateTime.now(),
+        firstDate: from,
+        lastDate: DateTime.now(),
+      );
+      if (to != null) {
+        setState(() {
+          _dateFilter = DateSpan(from: from, to: to);
+        });
+      }
+    }
+  }
+
+  void _showTypeFilter(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: StatefulBuilder(
-          builder: (sheetContext, setSheetState) => SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Filter Transactions',
-                        style: Theme.of(sheetContext).textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      if (_dateFilter != null ||
-                          _currentFilter != TransactionFilterBy.all)
-                        TextButton(
-                          onPressed: () {
-                            setSheetState(() {
-                              _currentFilter = TransactionFilterBy.all;
-                              _dateFilter = null;
-                            });
-                            setState(() {});
-                            Navigator.pop(sheetContext);
-                          },
-                          child: const Text('Clear all'),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Type',
-                    style: Theme.of(sheetContext).textTheme.titleSmall
-                        ?.copyWith(color: AppTheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _FilterChip(
-                        label: 'All',
-                        selected: _currentFilter == TransactionFilterBy.all,
-                        onSelected: (_) {
-                          setSheetState(
-                            () => _currentFilter = TransactionFilterBy.all,
-                          );
-                          setState(() {});
-                          Navigator.pop(sheetContext);
-                        },
-                      ),
-                      _FilterChip(
-                        label: 'Expenses',
-                        selected: _currentFilter == TransactionFilterBy.expense,
-                        onSelected: (_) {
-                          setSheetState(
-                            () => _currentFilter = TransactionFilterBy.expense,
-                          );
-                          setState(() {});
-                          Navigator.pop(sheetContext);
-                        },
-                      ),
-                      _FilterChip(
-                        label: 'Income',
-                        selected: _currentFilter == TransactionFilterBy.income,
-                        onSelected: (_) {
-                          setSheetState(
-                            () => _currentFilter = TransactionFilterBy.income,
-                          );
-                          setState(() {});
-                          Navigator.pop(sheetContext);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Date Range',
-                    style: Theme.of(sheetContext).textTheme.titleSmall
-                        ?.copyWith(color: AppTheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _DateFilterField(
-                          label: 'From',
-                          date: _dateFilter?.from,
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: sheetContext,
-                              initialDate: _dateFilter?.from ?? DateTime.now(),
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setSheetState(() {
-                                _dateFilter = DateSpan(
-                                  from: picked,
-                                  to: _dateFilter?.to ?? DateTime.now(),
-                                );
-                              });
-                              setState(() {});
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _DateFilterField(
-                          label: 'To',
-                          date: _dateFilter?.to,
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: sheetContext,
-                              initialDate: _dateFilter?.to ?? DateTime.now(),
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setSheetState(() {
-                                _dateFilter = DateSpan(
-                                  from: _dateFilter?.from ?? DateTime(2020),
-                                  to: picked,
-                                );
-                              });
-                              setState(() {});
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                ],
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Filter by Type',
+              style: GoogleFonts.manrope(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.onSurface,
               ),
             ),
-          ),
+            const SizedBox(height: 16),
+            _FilterOption(
+              label: 'All',
+              icon: Icons.all_inclusive,
+              isSelected: _currentFilter == TransactionFilterBy.all,
+              onTap: () {
+                setState(() => _currentFilter = TransactionFilterBy.all);
+                Navigator.pop(context);
+              },
+            ),
+            _FilterOption(
+              label: 'Expenses',
+              icon: Icons.arrow_downward,
+              isSelected: _currentFilter == TransactionFilterBy.expense,
+              onTap: () {
+                setState(() => _currentFilter = TransactionFilterBy.expense);
+                Navigator.pop(context);
+              },
+            ),
+            _FilterOption(
+              label: 'Income',
+              icon: Icons.arrow_upward,
+              isSelected: _currentFilter == TransactionFilterBy.income,
+              onTap: () {
+                setState(() => _currentFilter = TransactionFilterBy.income);
+                Navigator.pop(context);
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _showCategoryFilter(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Filter by Category',
+                  style: GoogleFonts.manrope(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.onSurface,
+                  ),
+                ),
+                if (_selectedCategory != null)
+                  TextButton(
+                    onPressed: () {
+                      setState(() => _selectedCategory = null);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Clear'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  final isSelected = _selectedCategory == category;
+                  return ListTile(
+                    leading: Icon(
+                      _getCategoryIcon(category),
+                      color: isSelected
+                          ? AppTheme.primary
+                          : AppTheme.onSurfaceVariant,
+                    ),
+                    title: Text(
+                      category,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? AppTheme.primary
+                            : AppTheme.onSurface,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check, color: AppTheme.primary)
+                        : null,
+                    onTap: () {
+                      setState(() => _selectedCategory = category);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    return switch (category) {
+      'Food & Dining' => Icons.restaurant,
+      'Transport' => Icons.directions_car,
+      'Shopping' => Icons.shopping_bag,
+      'Utilities' => Icons.bolt,
+      'Health' => Icons.health_and_safety,
+      'Education' => Icons.school,
+      'Remittance / Transfer' => Icons.send,
+      'Salary / Income' => Icons.payments,
+      'Savings' => Icons.savings,
+      'Entertainment' => Icons.movie,
+      'Groceries' => Icons.local_grocery_store,
+      _ => Icons.receipt,
+    };
   }
 
   List<Transaction> _filterTransactions(List<Transaction> transactions) {
@@ -422,6 +674,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         filtered = filtered
             .where((tx) => tx.type == TransactionType.credit)
             .toList();
+    }
+    if (_selectedCategory != null) {
+      filtered = filtered
+          .where((tx) => tx.category == _selectedCategory)
+          .toList();
     }
     if (_dateFilter != null) {
       final fromStart = DateTime(
@@ -479,7 +736,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         child: Builder(
           builder: (sheetContext) {
             final isDebit = tx.type == TransactionType.debit;
-            final color = isDebit ? AppTheme.error : AppTheme.primary;
+            final color = isDebit ? AppTheme.tertiary : AppTheme.secondary;
             return Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
               child: Column(
@@ -491,7 +748,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(14),
+                          shape: BoxShape.circle,
                         ),
                         child: Icon(
                           isDebit
@@ -508,19 +765,19 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                           children: [
                             Text(
                               '${isDebit ? '' : '+'}${CurrencyHelper.symbol}${CurrencyHelper.format(tx.amount)}',
-                              style: Theme.of(sheetContext)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: color,
-                                    letterSpacing: -0.5,
-                                  ),
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: color,
+                              ),
                             ),
                             Text(
                               isDebit ? 'Expense' : 'Income',
-                              style: Theme.of(sheetContext).textTheme.bodyMedium
-                                  ?.copyWith(color: AppTheme.onSurfaceVariant),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                                color: AppTheme.onSurfaceVariant,
+                              ),
                             ),
                           ],
                         ),
@@ -597,8 +854,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F6F5),
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -607,17 +864,21 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             width: 100,
             child: Text(
               label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: AppTheme.onSurfaceVariant),
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.onSurfaceVariant,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppTheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -712,90 +973,165 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 }
 
-class _FilterChip extends StatelessWidget {
+class _InlineFilterChip extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final bool selected;
-  final ValueChanged<bool> onSelected;
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onSelected,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: onSelected,
-      selectedColor: AppTheme.primary.withValues(alpha: 0.12),
-      checkmarkColor: AppTheme.primary,
-      labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: selected ? AppTheme.primary : AppTheme.onSurfaceVariant,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-      ),
-    );
-  }
-}
-
-class _DateFilterField extends StatelessWidget {
-  final String label;
-  final DateTime? date;
+  final bool hasDropdown;
   final VoidCallback onTap;
-  const _DateFilterField({
+  final bool isActive;
+
+  const _InlineFilterChip({
+    required this.icon,
     required this.label,
-    required this.date,
+    required this.hasDropdown,
     required this.onTap,
+    required this.isActive,
   });
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: date != null ? AppTheme.primary : AppTheme.outlineVariant,
-            width: 1.5,
+            color: isActive ? AppTheme.primary : AppTheme.outlineVariant,
+            width: 1,
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.calendar_today_rounded,
+              icon,
               size: 16,
-              color: date != null
-                  ? AppTheme.primary
-                  : AppTheme.onSurfaceVariant,
+              color: isActive ? AppTheme.primary : AppTheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: AppTheme.onSurfaceVariant,
-                    ),
-                  ),
-                  Text(
-                    date != null
-                        ? DateFormat('MMM dd, yy').format(date!)
-                        : 'Select',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: date != null
-                          ? AppTheme.onSurface
-                          : AppTheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isActive ? AppTheme.primary : AppTheme.onSurface,
               ),
             ),
+            if (hasDropdown) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.expand_more,
+                size: 16,
+                color: isActive ? AppTheme.primary : AppTheme.onSurfaceVariant,
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final String label;
+  final double amount;
+  final bool isPositive;
+  final IconData icon;
+  final Color color;
+
+  const _SummaryCard({
+    required this.label,
+    required this.amount,
+    required this.isPositive,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.outlineVariant, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 14, color: color),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.05,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${CurrencyHelper.symbol}${CurrencyHelper.format(amount.abs())}',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterOption extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _FilterOption({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected ? AppTheme.primary : AppTheme.onSurfaceVariant,
+      ),
+      title: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          color: isSelected ? AppTheme.primary : AppTheme.onSurface,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check, color: AppTheme.primary)
+          : null,
+      onTap: onTap,
     );
   }
 }

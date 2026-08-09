@@ -44,7 +44,9 @@ class CurrencyHelper {
   static IconData get icon => getCurrencyIcon(currency);
   static String format(double amount) {
     if (currency == 'USD' && ExchangeRateService.instance.isAvailable) {
-      final displayAmount = ExchangeRateService.instance.convertNprToUsd(amount);
+      final displayAmount = ExchangeRateService.instance.convertNprToUsd(
+        amount,
+      );
       return formatCurrency(displayAmount, 'USD');
     }
     return formatCurrency(amount, 'NPR');
@@ -88,51 +90,91 @@ class CurrencyNotifier extends ChangeNotifier {
 }
 
 class AppTheme {
-  static const primary = Color(0xFF004339);
-  static const primaryContainer = Color(0xFF005D4F);
+  // Primary - Deep Blue (Institutional trust & security)
+  static const primary = Color(0xFF000666);
+  static const primaryContainer = Color(0xFF1A237E);
   static const onPrimary = Color(0xFFFFFFFF);
+  static const onPrimaryContainer = Color(0xFF8690EE);
 
-  static const secondary = Color(0xFF52625E);
-  static const secondaryContainer = Color(0xFFD2E3DE);
+  // Secondary - Emerald Green (Growth & credit)
+  static const secondary = Color(0xFF1B6D24);
+  static const secondaryContainer = Color(0xFFA0F399);
   static const onSecondary = Color(0xFFFFFFFF);
+  static const onSecondaryContainer = Color(0xFF217128);
 
-  static const background = Color(0xFFF4F6F5);
-  static const onBackground = Color(0xFF191C1C);
+  // Tertiary - Deep Red (Expenses & debit)
+  static const tertiary = Color(0xFF400003);
+  static const tertiaryContainer = Color(0xFF670007);
+  static const onTertiary = Color(0xFFFFFFFF);
+  static const onTertiaryContainer = Color(0xFFFF635A);
 
-  static const surface = Color(0xFFF4F6F5);
-  static const surfaceBright = Color(0xFFF4F6F5);
-  static const surfaceContainerLow = Color(0xFFECEFED);
+  // Background & Surface
+  static const background = Color(0xFFF7F9FC);
+  static const onBackground = Color(0xFF191C1E);
+
+  static const surface = Color(0xFFF7F9FC);
+  static const surfaceBright = Color(0xFFF7F9FC);
   static const surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const surfaceVariant = Color(0xFFDDE2DF);
-  static const onSurface = Color(0xFF191C1C);
-  static const onSurfaceVariant = Color(0xFF3F4946);
+  static const surfaceContainerLow = Color(0xFFF2F4F7);
+  static const surfaceContainer = Color(0xFFECEEF1);
+  static const surfaceContainerHigh = Color(0xFFE6E8EB);
+  static const surfaceContainerHighest = Color(0xFFE0E3E6);
+  static const surfaceDim = Color(0xFFD8DADD);
+  static const surfaceVariant = Color(0xFFE0E3E6);
 
+  static const onSurface = Color(0xFF191C1E);
+  static const onSurfaceVariant = Color(0xFF454652);
+
+  // Error
   static const error = Color(0xFFBA1A1A);
   static const errorContainer = Color(0xFFFFDAD6);
   static const onError = Color(0xFFFFFFFF);
+  static const onErrorContainer = Color(0xFF93000A);
 
-  static const outline = Color(0xFF6F7976);
-  static const outlineVariant = Color(0xFFBEC9C4);
+  // Outline
+  static const outline = Color(0xFF767683);
+  static const outlineVariant = Color(0xFFC6C5D4);
 
+  // Fixed variants
+  static const primaryFixed = Color(0xFFE0E0FF);
+  static const primaryFixedDim = Color(0xFFBDC2FF);
+  static const onPrimaryFixed = Color(0xFF000767);
+  static const onPrimaryFixedVariant = Color(0xFF343D96);
+  static const secondaryFixed = Color(0xFFA3F69C);
+  static const secondaryFixedDim = Color(0xFF88D982);
+  static const onSecondaryFixed = Color(0xFF002204);
+  static const onSecondaryFixedVariant = Color(0xFF005312);
+  static const tertiaryFixed = Color(0xFFFFDAD6);
+  static const tertiaryFixedDim = Color(0xFFFFB4AC);
+  static const onTertiaryFixed = Color(0xFF410003);
+  static const onTertiaryFixedVariant = Color(0xFF93000E);
+
+  // Inverse
+  static const inverseSurface = Color(0xFF2D3133);
+  static const inverseOnSurface = Color(0xFFEFF1F4);
+  static const inversePrimary = Color(0xFFBDC2FF);
+
+  // Gradients
   static const signatureGradient = LinearGradient(
-    colors: [Color(0xFF004339), Color(0xFF006B59)],
+    colors: [Color(0xFF000666), Color(0xFF1A237E)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     stops: [0.0, 1.0],
   );
 
   static const shimmerGradient = LinearGradient(
-    colors: [Color(0xFF004339), Color(0xFF007B66), Color(0xFF004339)],
+    colors: [Color(0xFF000666), Color(0xFF1A237E), Color(0xFF000666)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const surfaceGradient = LinearGradient(
-    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAF9)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFF7F9FC)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
+  // Shadows - Tonal layers
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
       color: const Color(0xFF000000).withValues(alpha: 0.04),
@@ -159,86 +201,113 @@ class AppTheme {
     ),
   ];
 
-  static const inputRadius = 14.0;
+  // Border Radius - Soft (0.25rem)
+  static const inputRadius = 4.0;
+  static const buttonRadius = 4.0;
+  static const cardRadius = 8.0;
+  static const chipRadius = 9999.0;
+
+  // Spacing scale
+  static const spacingUnit = 4.0;
+  static const spacingXs = 4.0;
+  static const spacingSm = 8.0;
+  static const spacingMd = 16.0;
+  static const spacingLg = 24.0;
+  static const spacingXl = 32.0;
 
   static TextTheme _buildTextTheme() {
     return TextTheme(
+      // display-lg: Manrope 48px 700
       displayLarge: GoogleFonts.manrope(
-        fontSize: 57,
-        fontWeight: FontWeight.normal,
-        letterSpacing: -0.25,
+        fontSize: 48,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.02,
+        height: 1.25,
         color: onSurface,
       ),
+      // display-md: Manrope 40px 700
       displayMedium: GoogleFonts.manrope(
-        fontSize: 45,
-        fontWeight: FontWeight.normal,
+        fontSize: 40,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.02,
         color: onSurface,
       ),
+      // display-sm: Manrope 36px 700
       displaySmall: GoogleFonts.manrope(
         fontSize: 36,
         fontWeight: FontWeight.w700,
-        letterSpacing: -1.0,
+        letterSpacing: -0.02,
         color: onSurface,
       ),
+      // headline-lg: Manrope 32px 600
       headlineLarge: GoogleFonts.manrope(
         fontSize: 32,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.8,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.02,
         color: onSurface,
       ),
+      // headline-md: Manrope 24px 600
       headlineMedium: GoogleFonts.manrope(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-        color: onSurface,
-      ),
-      headlineSmall: GoogleFonts.manrope(
         fontSize: 24,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.3,
+        fontWeight: FontWeight.w600,
         color: onSurface,
       ),
+      // headline-sm: Manrope 20px 600
+      headlineSmall: GoogleFonts.manrope(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: onSurface,
+      ),
+      // title-lg: Manrope 20px 600
       titleLarge: GoogleFonts.manrope(
         fontSize: 20,
         fontWeight: FontWeight.w600,
-        letterSpacing: -0.2,
         color: onSurface,
       ),
+      // title-md: Manrope 16px 600
       titleMedium: GoogleFonts.manrope(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
+      // title-sm: Manrope 14px 600
       titleSmall: GoogleFonts.manrope(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
+      // body-lg: Inter 18px 400
       bodyLarge: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.normal,
+        fontSize: 18,
+        fontWeight: FontWeight.w400,
         color: onSurface,
       ),
+      // body-md: Inter 16px 400
       bodyMedium: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.normal,
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
         color: onSurface,
       ),
+      // body-sm: Inter 14px 400
       bodySmall: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-        color: onSurfaceVariant,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: onSurface,
       ),
+      // label-lg: Inter 14px 600
       labelLarge: GoogleFonts.inter(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: onSurface,
       ),
+      // label-md: Inter 12px 700
       labelMedium: GoogleFonts.inter(
         fontSize: 12,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.05,
         color: onSurface,
       ),
+      // label-sm: Inter 11px 500
       labelSmall: GoogleFonts.inter(
         fontSize: 11,
         fontWeight: FontWeight.w500,
@@ -248,12 +317,20 @@ class AppTheme {
     );
   }
 
+  static TextStyle dataMono({Color? color}) {
+    return GoogleFonts.jetBrainsMono(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: color ?? onSurface,
+    );
+  }
+
   static ThemeData get lightTheme {
     final textTheme = _buildTextTheme();
 
     final outlinedBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(inputRadius),
-      borderSide: const BorderSide(color: Color(0xFFDDE2DF), width: 1.5),
+      borderSide: const BorderSide(color: outlineVariant, width: 1.5),
     );
 
     return ThemeData(
@@ -264,20 +341,28 @@ class AppTheme {
         primary: primary,
         onPrimary: onPrimary,
         primaryContainer: primaryContainer,
-        onPrimaryContainer: Colors.white,
+        onPrimaryContainer: onPrimaryContainer,
         secondary: secondary,
         onSecondary: onSecondary,
         secondaryContainer: secondaryContainer,
-        onSecondaryContainer: onSurface,
+        onSecondaryContainer: onSecondaryContainer,
+        tertiary: tertiary,
+        onTertiary: onTertiary,
+        tertiaryContainer: tertiaryContainer,
+        onTertiaryContainer: onTertiaryContainer,
         error: error,
         onError: onError,
         errorContainer: errorContainer,
+        onErrorContainer: onErrorContainer,
         surface: surface,
         onSurface: onSurface,
-        surfaceContainerHighest: surfaceVariant,
+        surfaceContainerHighest: surfaceContainerHighest,
         onSurfaceVariant: onSurfaceVariant,
         outline: outline,
         outlineVariant: outlineVariant,
+        inverseSurface: inverseSurface,
+        onInverseSurface: inverseOnSurface,
+        inversePrimary: inversePrimary,
       ),
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
@@ -294,16 +379,18 @@ class AppTheme {
         color: surfaceContainerLowest,
         elevation: 0,
         shadowColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(cardRadius),
+        ),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF4F6F5),
+        fillColor: surfaceContainerLow,
         border: outlinedBorder,
         enabledBorder: outlinedBorder.copyWith(
-          borderSide: const BorderSide(color: Color(0xFFE8ECEA), width: 1.5),
+          borderSide: const BorderSide(color: outlineVariant, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(inputRadius),
@@ -319,7 +406,7 @@ class AppTheme {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(inputRadius),
-          borderSide: const BorderSide(color: Color(0xFFE8ECEA), width: 1.5),
+          borderSide: const BorderSide(color: outlineVariant, width: 1.5),
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(color: onSurfaceVariant),
         labelStyle: textTheme.bodyMedium?.copyWith(color: onSurfaceVariant),
@@ -328,16 +415,22 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         prefixIconColor: onSurfaceVariant,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: spacingMd,
+          vertical: spacingMd,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: onPrimary,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: spacingLg,
+            vertical: spacingMd,
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(buttonRadius),
           ),
           textStyle: textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,
@@ -348,10 +441,13 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: onSurface,
-          side: const BorderSide(color: Color(0xFFDDE2DF), width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          side: const BorderSide(color: outlineVariant, width: 1.5),
+          padding: const EdgeInsets.symmetric(
+            horizontal: spacingLg,
+            vertical: spacingMd,
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(buttonRadius),
           ),
           textStyle: textTheme.labelLarge,
         ),
@@ -360,7 +456,10 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: primary,
           textStyle: textTheme.labelLarge,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: spacingSm,
+            vertical: spacingSm / 2,
+          ),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -390,33 +489,51 @@ class AppTheme {
         backgroundColor: primary,
         foregroundColor: onPrimary,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(buttonRadius),
+        ),
       ),
       listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: spacingMd,
+          vertical: spacingSm / 2,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(buttonRadius),
+        ),
         titleTextStyle: textTheme.titleSmall,
-        subtitleTextStyle: textTheme.bodySmall?.copyWith(color: onSurfaceVariant),
+        subtitleTextStyle: textTheme.bodySmall?.copyWith(
+          color: onSurfaceVariant,
+        ),
         iconColor: onSurfaceVariant,
       ),
       dividerTheme: const DividerThemeData(
-        color: Color(0xFFECEFED),
+        color: surfaceContainer,
         thickness: 1,
         space: 1,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: const Color(0xFFECEFED),
+        backgroundColor: surfaceContainer,
         selectedColor: primary.withValues(alpha: 0.12),
         labelStyle: textTheme.labelMedium,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(chipRadius),
+        ),
         side: BorderSide.none,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(
+          horizontal: spacingSm / 2,
+          vertical: spacingXs / 2,
+        ),
       ),
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(cardRadius * 2),
+        ),
         backgroundColor: surfaceContainerLowest,
         titleTextStyle: textTheme.titleLarge,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(color: onSurfaceVariant),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: onSurfaceVariant,
+        ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: surfaceContainerLowest,
@@ -424,16 +541,22 @@ class AppTheme {
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         showDragHandle: true,
-        dragHandleColor: Color(0xFFBEC9C4),
+        dragHandleColor: outlineVariant,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: onSurface,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(color: Colors.white),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: inverseSurface,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: inverseOnSurface,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(buttonRadius),
+        ),
         behavior: SnackBarBehavior.floating,
       ),
       popupMenuTheme: PopupMenuThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(cardRadius),
+        ),
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.1),
       ),
@@ -444,11 +567,21 @@ class AppTheme {
 }
 
 class AppColors {
-  static const debit = AppTheme.error;
-  static const credit = AppTheme.primary;
-  static const income = AppTheme.primary;
-  static const expense = AppTheme.error;
-  static const onTrack = AppTheme.primaryContainer;
-  static const behind = Color(0xFFBA1A1A);
-  static const achieved = AppTheme.primary;
+  // Credit = Emerald Green
+  static const credit = AppTheme.secondary;
+  static const income = AppTheme.secondary;
+
+  // Debit = Deep Red
+  static const debit = AppTheme.tertiary;
+  static const expense = AppTheme.tertiary;
+
+  // Goal statuses
+  static const onTrack = AppTheme.secondary;
+  static const behind = AppTheme.tertiary;
+  static const achieved = AppTheme.secondary;
+
+  // Semantic
+  static const success = AppTheme.secondary;
+  static const warning = Color(0xFFE65100);
+  static const info = AppTheme.primary;
 }
