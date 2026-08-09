@@ -1,0 +1,8 @@
+environment:
+  vars:
+    GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+
+publishing:
+  google_play:
+    credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_CREDENTIALS
+    track: internal
