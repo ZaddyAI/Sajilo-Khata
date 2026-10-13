@@ -21,11 +21,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadUserProfile() async {
     final user = FirebaseAuth.instance.currentUser;
+    final prefs = await SharedPreferences.getInstance();
     if (user != null) {
-      final prefs = await SharedPreferences.getInstance();
       setState(() {
         _userName = prefs.getString('userName') ?? user.displayName ?? 'User';
         _photoUrl = user.photoURL;
+      });
+    } else {
+      setState(() {
+        _userName = prefs.getString('userName') ?? 'Guest';
+        _photoUrl = null;
       });
     }
   }

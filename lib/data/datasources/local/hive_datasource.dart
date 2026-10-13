@@ -7,22 +7,35 @@ import '../../../domain/entities/goal.dart';
 enum SyncStatus { pending, synced, conflict }
 
 class HiveDataSource {
+  static final HiveDataSource _instance = HiveDataSource._internal();
+  static HiveDataSource get instance => _instance;
+  factory HiveDataSource() => _instance;
+  HiveDataSource._internal();
+
   static const String _transactionsBox = 'transactions';
   static const String _goalsBox = 'goals';
   static const String _syncQueueBox = 'sync_queue';
   static const String _settingsBoxName = 'settings';
 
-  late final Box<Map<dynamic, dynamic>> _txBox;
-  late final Box<Map<dynamic, dynamic>> _goalBox;
-  late final Box _queueBox;
-  late final Box _settingsBox;
+  late Box<Map<dynamic, dynamic>> _txBox;
+  late Box<Map<dynamic, dynamic>> _goalBox;
+  late Box _queueBox;
+  late Box _settingsBox;
 
   Future<void> init() async {
     await Hive.initFlutter();
-    _txBox = await Hive.openBox<Map<dynamic, dynamic>>(_transactionsBox);
-    _goalBox = await Hive.openBox<Map<dynamic, dynamic>>(_goalsBox);
-    _queueBox = await Hive.openBox(_syncQueueBox);
-    _settingsBox = await Hive.openBox(_settingsBoxName);
+    _txBox = Hive.isBoxOpen(_transactionsBox)
+        ? Hive.box<Map<dynamic, dynamic>>(_transactionsBox)
+        : await Hive.openBox<Map<dynamic, dynamic>>(_transactionsBox);
+    _goalBox = Hive.isBoxOpen(_goalsBox)
+        ? Hive.box<Map<dynamic, dynamic>>(_goalsBox)
+        : await Hive.openBox<Map<dynamic, dynamic>>(_goalsBox);
+    _queueBox = Hive.isBoxOpen(_syncQueueBox)
+        ? Hive.box(_syncQueueBox)
+        : await Hive.openBox(_syncQueueBox);
+    _settingsBox = Hive.isBoxOpen(_settingsBoxName)
+        ? Hive.box(_settingsBoxName)
+        : await Hive.openBox(_settingsBoxName);
   }
 
   // ── Transactions ──

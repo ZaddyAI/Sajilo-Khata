@@ -27,7 +27,7 @@ class ExchangeRateService {
 
       final response = await http
           .get(Uri.parse('$_baseUrl/rate/USD/NPR'))
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -37,9 +37,9 @@ class ExchangeRateService {
         print("data of usd $data");
       }
     } catch (e) {
-      // Default fallback rate if API fails: 1 USD = 148 NPR
+      // Default fallback rate if API fails: 1 USD = 150 NPR
       if (_usdToNpr == null) {
-        _usdToNpr = 148.0;
+        _usdToNpr = 150.0;
         _nprToUsd = 1 / _usdToNpr!;
       }
     }

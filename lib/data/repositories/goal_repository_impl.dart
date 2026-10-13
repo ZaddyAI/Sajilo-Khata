@@ -9,15 +9,14 @@ class GoalRepositoryImpl implements GoalRepository {
   final FirebaseFirestoreDataSource _remoteDataSource;
   final HiveDataSource _localDataSource;
 
-  GoalRepositoryImpl(
-    this._remoteDataSource,
-    this._localDataSource,
-  );
+  GoalRepositoryImpl(this._remoteDataSource, this._localDataSource);
 
   @override
   Future<Result<void>> addGoal(Goal goal) async {
+    _localDataSource.saveGoal(goal);
     try {
       await _remoteDataSource.addGoal(goal);
+      _localDataSource.markAsSynced(goal.id, 'goal');
       return Result.success(null);
     } on Exception catch (e) {
       return Result.failure(e.toString());
@@ -26,6 +25,7 @@ class GoalRepositoryImpl implements GoalRepository {
 
   @override
   Future<Result<void>> deleteGoal(String id) async {
+    _localDataSource.deleteGoal(id);
     try {
       await _remoteDataSource.deleteGoal(id);
       return Result.success(null);
@@ -50,8 +50,10 @@ class GoalRepositoryImpl implements GoalRepository {
 
   @override
   Future<Result<void>> updateGoal(Goal goal) async {
+    _localDataSource.updateGoal(goal);
     try {
       await _remoteDataSource.updateGoal(goal);
+      _localDataSource.markAsSynced(goal.id, 'goal');
       return Result.success(null);
     } on Exception catch (e) {
       return Result.failure(e.toString());
@@ -60,6 +62,12 @@ class GoalRepositoryImpl implements GoalRepository {
 
   @override
   Future<Result<void>> contributeToGoal(String goalId, double amount) async {
+    final goal = _localDataSource.getGoal(goalId);
+    if (goal != null) {
+      _localDataSource.updateGoal(
+        goal.copyWith(savedAmount: goal.savedAmount + amount),
+      );
+    }
     try {
       await _remoteDataSource.contributeToGoal(goalId, amount);
       return Result.success(null);
@@ -74,6 +82,13 @@ class GoalRepositoryImpl implements GoalRepository {
     String contributionId,
     double amount,
   ) async {
+    final goal = _localDataSource.getGoal(goalId);
+    if (goal != null) {
+      final newAmt = (goal.savedAmount - amount) < 0
+          ? 0.0
+          : (goal.savedAmount - amount);
+      _localDataSource.updateGoal(goal.copyWith(savedAmount: newAmt));
+    }
     try {
       await _remoteDataSource.removeContribution(
         goalId,
@@ -93,6 +108,12 @@ class GoalRepositoryImpl implements GoalRepository {
     double oldAmount,
     double newAmount,
   ) async {
+    final goal = _localDataSource.getGoal(goalId);
+    if (goal != null) {
+      _localDataSource.updateGoal(
+        goal.copyWith(savedAmount: goal.savedAmount - oldAmount + newAmount),
+      );
+    }
     try {
       await _remoteDataSource.editContribution(
         goalId,

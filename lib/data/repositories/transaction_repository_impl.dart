@@ -16,8 +16,10 @@ class TransactionRepositoryImpl implements TransactionRepository {
     String? duplicateKey,
     Transaction transaction,
   ) async {
+    _localDataSource.saveTransaction(transaction);
     try {
       await _remoteDataSource.addTransaction(duplicateKey, transaction);
+      _localDataSource.markAsSynced(transaction.id, 'transaction');
       return Result.success(null);
     } on Exception catch (e) {
       return Result.failure(e.toString());
@@ -36,6 +38,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<Result<void>> deleteTransaction(String id) async {
+    _localDataSource.deleteTransaction(id);
     try {
       await _remoteDataSource.deleteTransaction(id);
       return Result.success(null);
@@ -60,8 +63,10 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<Result<void>> updateTransaction(Transaction transaction) async {
+    _localDataSource.updateTransaction(transaction);
     try {
       await _remoteDataSource.updateTransaction(transaction);
+      _localDataSource.markAsSynced(transaction.id, 'transaction');
       return Result.success(null);
     } on Exception catch (e) {
       return Result.failure(e.toString());

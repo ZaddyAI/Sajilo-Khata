@@ -24,13 +24,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     final user = FirebaseAuth.instance.currentUser;
+    final prefs = await SharedPreferences.getInstance();
+    _currency = prefs.getString('currency') ?? 'NPR';
+    _isBS = prefs.getString('datePreference') != 'AD';
+
     if (user != null) {
       _userEmail = user.email ?? user.phoneNumber ?? 'No email';
-      final prefs = await SharedPreferences.getInstance();
       _nameController.text =
           prefs.getString('userName') ?? user.displayName ?? '';
-      _currency = prefs.getString('currency') ?? 'NPR';
-      _isBS = prefs.getString('datePreference') != 'AD';
       try {
         final result = await context.read<AuthRepository>().getProfile();
         if (result.data != null) {
@@ -46,6 +47,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
         }
       } catch (_) {}
+    } else {
+      _userEmail = 'Offline Guest Account';
+      _nameController.text = prefs.getString('userName') ?? 'Guest User';
     }
     if (mounted) {
       setState(() => _isLoading = false);
@@ -62,13 +66,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return;
       }
     }
-    try {
-      await context.read<AuthRepository>().saveProfile(name, _currency);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving profile: $e')));
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await context.read<AuthRepository>().saveProfile(name, _currency);
+      } catch (e) {
+        debugPrint('[Profile] Error saving profile to cloud: $e');
       }
     }
     final prefs = await SharedPreferences.getInstance();
@@ -204,6 +207,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   // Profile Card
                   _buildProfileCard(),
+                  if (FirebaseAuth.instance.currentUser == null) ...[
+                    const SizedBox(height: 12),
+                    _buildGuestConnectCard(),
+                  ],
                   const SizedBox(height: 16),
 
                   // Settings Grid
@@ -327,19 +334,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppTheme.secondaryContainer.withValues(alpha: 0.2),
+              color: FirebaseAuth.instance.currentUser == null
+                  ? Colors.amber.withValues(alpha: 0.15)
+                  : AppTheme.secondaryContainer.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.sync, size: 14, color: AppTheme.secondary),
+                Icon(
+                  FirebaseAuth.instance.currentUser == null
+                      ? Icons.offline_bolt_outlined
+                      : Icons.sync,
+                  size: 14,
+                  color: FirebaseAuth.instance.currentUser == null
+                      ? Colors.amber.shade900
+                      : AppTheme.secondary,
+                ),
                 const SizedBox(width: 6),
                 Text(
-                  'Last synced: 2 minutes ago',
+                  FirebaseAuth.instance.currentUser == null
+                      ? 'Guest Mode (Offline)'
+                      : 'Synced with Cloud',
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: AppTheme.secondary,
+                    fontWeight: FontWeight.w600,
+                    color: FirebaseAuth.instance.currentUser == null
+                        ? Colors.amber.shade900
+                        : AppTheme.secondary,
                   ),
                 ),
               ],
@@ -748,7 +770,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Sign Out',
+                        FirebaseAuth.instance.currentUser == null
+                            ? 'Exit Guest Mode'
+                            : 'Sign Out',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -767,6 +791,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildGuestConnectCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryContainer.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.cloud_upload_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Backup & Sync Online',
+                  style: GoogleFonts.manrope(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Sign in to secure and sync your financial data.',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+            ),
+            child: const Text('Sign In'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -832,12 +918,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _confirmSignOut(BuildContext context) {
+    final isGuest = FirebaseAuth.instance.currentUser == null;
     showDialog(
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Sign Out'),
-          content: const Text('Are you sure you want to sign out?'),
+          title: Text(isGuest ? 'Exit Guest Mode' : 'Sign Out'),
+          content: Text(
+            isGuest
+                ? 'Are you sure you want to exit guest mode and return to login?'
+                : 'Are you sure you want to sign out?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
@@ -849,7 +940,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 context.read<AuthBloc>().add(AuthSignOutRequested());
               },
               style: TextButton.styleFrom(foregroundColor: AppTheme.error),
-              child: const Text('Sign Out'),
+              child: Text(isGuest ? 'Exit' : 'Sign Out'),
             ),
           ],
         );
