@@ -50,9 +50,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     emit(GoalLoading());
 
     final localGoals = getGoals.getLocal();
-    if (localGoals.isNotEmpty) {
-      emit(GoalLoaded(goals: localGoals, isLocalOnly: true));
-    }
+    emit(GoalLoaded(goals: localGoals, isLocalOnly: true));
 
     await emit.forEach(
       getGoals.observe(),
@@ -61,8 +59,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         return GoalLoaded(goals: firestoreGoals);
       },
       onError: (error, stack) {
-        print('[GoalBloc] Firestore stream error: $error');
-        return GoalLoaded(goals: [], isLocalOnly: true);
+        return GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true);
       },
     );
   }
@@ -72,7 +69,10 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     Emitter<GoalState> emit,
   ) async {
     await addGoal.call(event.goal);
-    _notifications.showGoalCreatedNotification(event.goal);
+    try {
+      _notifications.showGoalCreatedNotification(event.goal);
+    } catch (_) {}
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }
 
   Future<void> _onContributeRequested(
@@ -80,6 +80,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     Emitter<GoalState> emit,
   ) async {
     await contributeToGoal.call(event.goalId, event.amount);
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }
 
   Future<void> _onRemoveContributionRequested(
@@ -91,6 +92,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       event.contributionId,
       event.amount,
     );
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }
 
   Future<void> _onEditContributionRequested(
@@ -103,6 +105,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       event.oldAmount,
       event.newAmount,
     );
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }
 
   Future<void> _onDeleteRequested(
@@ -110,6 +113,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     Emitter<GoalState> emit,
   ) async {
     await deleteGoal.call(event.id);
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }
 
   Future<void> _onUpdateRequested(
@@ -117,8 +121,11 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     Emitter<GoalState> emit,
   ) async {
     if (event.goal.status == GoalStatus.achieved) {
-      _notifications.showGoalCompletedNotification(event.goal);
+      try {
+        _notifications.showGoalCompletedNotification(event.goal);
+      } catch (_) {}
     }
     await updateGoal.call(event.goal);
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }
 }

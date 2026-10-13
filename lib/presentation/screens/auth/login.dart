@@ -345,6 +345,17 @@ class _LoginScreenState extends State<LoginScreen>
                                                     AuthGoogleSignInRequested(),
                                                   ),
                                             ),
+
+                                            const SizedBox(height: 12),
+
+                                            // Continue as Guest (Offline)
+                                            AuthGuestButton(
+                                              loading: isLoading,
+                                              onPressed: () =>
+                                                  context.read<AuthBloc>().add(
+                                                    AuthGuestLoginRequested(),
+                                                  ),
+                                            ),
                                           ],
                                         ),
                                       ),

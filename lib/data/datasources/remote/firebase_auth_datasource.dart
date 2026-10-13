@@ -68,9 +68,16 @@ class FirebaseAuthDataSource {
   Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
     if (user == null) return null;
-    await _ensureProfile(user);
-    final profile = await _getProfileData(user.uid);
-    return UserModel.fromFirebase(user, profile: profile);
+    try {
+      await _ensureProfile(user).timeout(const Duration(seconds: 2));
+      final profile = await _getProfileData(
+        user.uid,
+      ).timeout(const Duration(seconds: 2));
+      return UserModel.fromFirebase(user, profile: profile);
+    } catch (_) {
+      // Offline fallback: return UserModel directly without waiting for remote Firestore
+      return UserModel.fromFirebase(user);
+    }
   }
 
   Future<void> saveProfile(String name, String currency) async {

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart' hide FirebaseService;
 import 'package:provider/provider.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+
 import 'core/services/exchange_rate_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/constants/app_theme.dart';
@@ -15,11 +17,23 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Prevent any HTTP network requests for fonts when offline
+  GoogleFonts.config.allowRuntimeFetching = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 4));
+  } catch (e) {
+    debugPrint('[main] Firebase init offline/error: $e');
+  }
 
   final hive = HiveDataSource();
   await hive.init();
-  await NotificationService().initialize();
+
+  // Initialize notifications asynchronously so native splash is never blocked
+  NotificationService().initialize().catchError((e) {
+    debugPrint('[main] NotificationService init error: $e');
+  });
 
   runApp(SajiloKhataApp(hive: hive));
 }

@@ -16,18 +16,28 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    await _requestPermission();
-    await _initLocalNotifications();
-    await _initFCM();
+    try {
+      await _initLocalNotifications();
+    } catch (_) {}
+
+    try {
+      await _requestPermission().timeout(const Duration(seconds: 2));
+    } catch (_) {}
+
+    try {
+      await _initFCM().timeout(const Duration(seconds: 3));
+    } catch (_) {}
   }
 
   Future<void> _requestPermission() async {
-    await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      sound: true,
-    );
+    try {
+      await _firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        sound: true,
+      );
+    } catch (_) {}
   }
 
   Future<void> _initLocalNotifications() async {
@@ -47,23 +57,32 @@ class NotificationService {
   }
 
   Future<void> _initFCM() async {
-    final token = await _firebaseMessaging.getToken();
-    await _saveTokenToFirestore(token);
+    try {
+      final token = await _firebaseMessaging.getToken().timeout(
+        const Duration(seconds: 3),
+      );
+      await _saveTokenToFirestore(token);
+    } catch (_) {}
 
-    _firebaseMessaging.onTokenRefresh.listen((token) {
-      _saveTokenToFirestore(token);
-    });
-
-    FirebaseMessaging.onMessage.listen(_showLocalNotification);
+    try {
+      _firebaseMessaging.onTokenRefresh.listen((token) {
+        _saveTokenToFirestore(token);
+      });
+      FirebaseMessaging.onMessage.listen(_showLocalNotification);
+    } catch (_) {}
   }
 
   Future<void> _saveTokenToFirestore(String? token) async {
     if (token == null) return;
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'fcmToken': token,
-    }, SetOptions(merge: true));
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .set({'fcmToken': token}, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 2));
+    } catch (_) {}
   }
 
   void _showLocalNotification(RemoteMessage message) {

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/datasources/local/hive_datasource.dart';
 import '../../data/datasources/remote/firebase_firestore_datasource.dart';
 import '../../domain/entities/transaction.dart';
 
@@ -139,8 +141,13 @@ class SmsService {
 
     final duplicateKey =
         '${sender}_${parsed['amount']}_${parsed['description']}';
-    final isDuplicate = await _db.checkDuplicate(duplicateKey);
-    if (isDuplicate) return false;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final isDuplicate = await _db.checkDuplicate(duplicateKey);
+        if (isDuplicate) return false;
+      } catch (_) {}
+    }
 
     final now = DateTime.now();
     final txDate = _extractDateFromBody(body) ?? now;
@@ -157,7 +164,17 @@ class SmsService {
     );
 
     debugPrint('[SmsService] Importing with date: $txDate');
-    await _db.addTransaction(duplicateKey, tx);
+    HiveDataSource().saveTransaction(tx);
+    if (user != null) {
+      try {
+        await _db.addTransaction(duplicateKey, tx);
+        HiveDataSource().markAsSynced(tx.id, 'transaction');
+      } catch (e) {
+        debugPrint(
+          '[SmsService] Remote addTransaction error (saved locally): $e',
+        );
+      }
+    }
     return true;
   }
 
@@ -165,15 +182,18 @@ class SmsService {
     debugPrint('[SmsService] Processing SMS from: $sender');
 
     bool autoTrackEnabled = true;
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        debugPrint('[SmsService] No user logged in');
-        return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        autoTrackEnabled = await _db.getSmsAutoTrack();
+      } catch (e) {
+        debugPrint(
+          '[SmsService] getSmsAutoTrack error: $e, defaulting to true',
+        );
       }
-      autoTrackEnabled = await _db.getSmsAutoTrack();
-    } catch (e) {
-      debugPrint('[SmsService] getSmsAutoTrack error: $e, defaulting to true');
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      autoTrackEnabled = prefs.getBool('smsAutoTrack') ?? true;
     }
     debugPrint('[SmsService] Auto-track enabled: $autoTrackEnabled');
     if (!autoTrackEnabled) return;
@@ -192,10 +212,16 @@ class SmsService {
     // Check for duplicate - use sender + amount + description as unique key
     final duplicateKey =
         '${sender}_${parsed['amount']}_${parsed['description']}';
-    final isDuplicate = await _db.checkDuplicate(duplicateKey);
-    if (isDuplicate) {
-      debugPrint('[SmsService] Duplicate transaction skipped: $duplicateKey');
-      return;
+    if (user != null) {
+      try {
+        final isDuplicate = await _db.checkDuplicate(duplicateKey);
+        if (isDuplicate) {
+          debugPrint(
+            '[SmsService] Duplicate transaction skipped: $duplicateKey',
+          );
+          return;
+        }
+      } catch (_) {}
     }
 
     final tx = Transaction(
@@ -211,7 +237,17 @@ class SmsService {
     );
 
     debugPrint('[SmsService] Transaction added with date: $txDate');
-    await _db.addTransaction(duplicateKey, tx);
+    HiveDataSource().saveTransaction(tx);
+    if (user != null) {
+      try {
+        await _db.addTransaction(duplicateKey, tx);
+        HiveDataSource().markAsSynced(tx.id, 'transaction');
+      } catch (e) {
+        debugPrint(
+          '[SmsService] Remote add transaction error (saved locally): $e',
+        );
+      }
+    }
     debugPrint('[SmsService] Transaction added: ${tx.id}');
   }
 

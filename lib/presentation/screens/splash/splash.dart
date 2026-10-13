@@ -12,6 +12,15 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  bool _navigated = false;
+  Timer? _safetyTimer;
+
+  void _navigate(String route) {
+    if (_navigated || !mounted) return;
+    _navigated = true;
+    _safetyTimer?.cancel();
+    Navigator.pushReplacementNamed(context, route);
+  }
 
   @override
   void initState() {
@@ -34,10 +43,38 @@ class _SplashScreenState extends State<SplashScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
+
+    // Safety fallback: ensures splash screen NEVER stays stuck offline or on error
+    _safetyTimer = Timer(const Duration(milliseconds: 2500), () async {
+      if (_navigated || !mounted) return;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        _navigate('/home');
+      } else if (authState is AuthUnauthenticated) {
+        _navigate('/login');
+      } else {
+        try {
+          final con = await Connectivity().checkConnectivity();
+          final isOffline =
+              con.isEmpty || con.every((r) => r == ConnectivityResult.none);
+          if (isOffline) {
+            if (mounted) {
+              context.read<AuthBloc>().add(AuthGuestLoginRequested());
+            }
+            _navigate('/home');
+          } else {
+            _navigate('/login');
+          }
+        } catch (_) {
+          _navigate('/home');
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    _safetyTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -47,9 +84,9 @@ class _SplashScreenState extends State<SplashScreen>
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          Navigator.pushReplacementNamed(context, '/home');
+          _navigate('/home');
         } else if (state is AuthUnauthenticated) {
-          Navigator.pushReplacementNamed(context, '/login');
+          _navigate('/login');
         }
       },
       child: Scaffold(

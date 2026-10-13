@@ -86,9 +86,7 @@ class AuthPrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primary,
           foregroundColor: AppTheme.onPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 0,
         ),
         child: loading
@@ -122,17 +120,21 @@ class AuthOrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
+        const Expanded(
+          child: Divider(thickness: 1, color: AppTheme.outlineVariant),
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             'or',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.outlineVariant,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppTheme.outlineVariant),
           ),
         ),
-        const Expanded(child: Divider(thickness: 1, color: AppTheme.outlineVariant)),
+        const Expanded(
+          child: Divider(thickness: 1, color: AppTheme.outlineVariant),
+        ),
       ],
     );
   }
@@ -155,9 +157,7 @@ class AuthGoogleButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: loading ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           side: const BorderSide(color: AppTheme.outlineVariant, width: 1.5),
           foregroundColor: AppTheme.onSurface,
           backgroundColor: Colors.white,
@@ -187,8 +187,57 @@ class AuthGoogleButton extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               'Continue with Google',
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AuthGuestButton extends StatelessWidget {
+  final bool loading;
+  final VoidCallback onPressed;
+
+  const AuthGuestButton({
+    super.key,
+    required this.loading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: OutlinedButton(
+        onPressed: loading ? null : onPressed,
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          side: BorderSide(
+            color: AppTheme.secondary.withValues(alpha: 0.5),
+            width: 1.5,
+          ),
+          foregroundColor: AppTheme.secondary,
+          backgroundColor: AppTheme.secondary.withValues(alpha: 0.06),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.offline_pin_outlined,
+              size: 20,
+              color: AppTheme.secondary,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Continue as Guest (Offline)',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.secondary,
+                fontSize: 14,
               ),
             ),
           ],

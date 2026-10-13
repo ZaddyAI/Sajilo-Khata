@@ -38,9 +38,7 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     emit(TransactionLoading());
 
     final localTxs = getTransactions.getLocal();
-    if (localTxs.isNotEmpty) {
-      emit(TransactionLoaded(transactions: localTxs, isLocalOnly: true));
-    }
+    emit(TransactionLoaded(transactions: localTxs, isLocalOnly: true));
 
     await emit.forEach(
       getTransactions.observe(),
@@ -49,8 +47,10 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         return TransactionLoaded(transactions: firestoreTxs);
       },
       onError: (error, stack) {
-        print('[TxBloc] Firestore stream error: $error');
-        return TransactionLoaded(transactions: [], isLocalOnly: true);
+        return TransactionLoaded(
+          transactions: getTransactions.getLocal(),
+          isLocalOnly: true,
+        );
       },
     );
   }
@@ -60,10 +60,16 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     await addTransaction.call(null, event.transaction);
-    _notifications.showTransactionLoggedNotification(
-      amount: event.transaction.amount,
-      isDebit: event.transaction.type == TransactionType.debit,
-    );
+    try {
+      _notifications.showTransactionLoggedNotification(
+        amount: event.transaction.amount,
+        isDebit: event.transaction.type == TransactionType.debit,
+      );
+    } catch (_) {}
+    emit(TransactionLoaded(
+      transactions: getTransactions.getLocal(),
+      isLocalOnly: true,
+    ));
   }
 
   Future<void> _onUpdateRequested(
@@ -71,6 +77,10 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     await updateTransaction.call(event.transaction);
+    emit(TransactionLoaded(
+      transactions: getTransactions.getLocal(),
+      isLocalOnly: true,
+    ));
   }
 
   Future<void> _onDeleteRequested(
@@ -78,5 +88,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     Emitter<TransactionState> emit,
   ) async {
     await deleteTransaction.call(event.id);
+    emit(TransactionLoaded(
+      transactions: getTransactions.getLocal(),
+      isLocalOnly: true,
+    ));
   }
 }
