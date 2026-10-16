@@ -10,6 +10,8 @@ class AddSavingsBottomSheet extends StatefulWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      showDragHandle: false,
+      sheetAnimationStyle: appSheetAnimationStyle,
       builder: (_) => AddSavingsBottomSheet(goal: goal),
     );
   }
@@ -46,133 +48,170 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, 24 + keyboardHeight),
+      padding: EdgeInsets.fromLTRB(22, 14, 22, 24 + keyboardHeight),
       decoration: const BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Handle
+          // Drag Handle
           Center(
             child: Container(
-              width: 40,
+              width: 36,
               height: 4,
               decoration: BoxDecoration(
                 color: AppTheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Header
+          // Header Row
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Add Savings',
-                    style: GoogleFonts.manrope(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onSurface,
-                    ),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppTheme.mint.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.goal.emoji,
+                    style: const TextStyle(fontSize: 24),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Remaining: ${CurrencyHelper.symbol}${CurrencyHelper.format(remaining)}',
-                    style: GoogleFonts.jetBrainsMono(
-                      fontSize: 14,
-                      color: AppTheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+                ),
               ),
-              IconButton(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add to ${widget.goal.name}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.onSurface,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Remaining: ${CurrencyHelper.symbol}${CurrencyHelper.format(remaining)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minSize: 32,
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded),
-                color: AppTheme.onSurfaceVariant,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceContainerLow,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.xmark,
+                    size: 14,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
 
-          // Amount Input
+          // Amount Input Card
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             decoration: BoxDecoration(
               color: AppTheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppTheme.outlineVariant, width: 0.8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'AMOUNT',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
+                  'DEPOSIT AMOUNT',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 0.05,
+                    letterSpacing: 0.8,
                     color: AppTheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  keyboardType: TextInputType.number,
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.primary,
-                  ),
-                  decoration: InputDecoration(
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.only(left: 4, right: 8),
-                      child: Text(
-                        CurrencyHelper.currency,
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primary,
-                        ),
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      CurrencyHelper.currency,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.primary,
                       ),
                     ),
-                    prefixIconConstraints: const BoxConstraints(
-                      minWidth: 0,
-                      minHeight: 0,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        keyboardType: TextInputType.number,
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.onSurface,
+                        ),
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                          hintText: '0',
+                          hintStyle: GoogleFonts.jetBrainsMono(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.outlineVariant,
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _isQuickAmount = false;
+                          });
+                        },
+                      ),
                     ),
-                    border: InputBorder.none,
-                    hintText: '0',
-                    hintStyle: GoogleFonts.jetBrainsMono(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.outlineVariant,
-                    ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _isQuickAmount = false;
-                    });
-                  },
+                  ],
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
 
-          // Quick Amount Chips
+          // Quick Amount Pills
           Text(
             'QUICK AMOUNTS',
-            style: GoogleFonts.inter(
-              fontSize: 12,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.05,
+              letterSpacing: 0.8,
               color: AppTheme.onSurfaceVariant,
             ),
           ),
@@ -181,70 +220,80 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
             spacing: 8,
             runSpacing: 8,
             children: _quickAmounts.map((amount) {
+              final isSelected =
+                  _controller.text == amount.toString() && _isQuickAmount;
               return GestureDetector(
                 onTap: () {
+                  HapticFeedback.selectionClick();
                   setState(() {
                     _controller.text = amount.toString();
                     _isQuickAmount = true;
                   });
                 },
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
+                    horizontal: 14,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        _controller.text == amount.toString() && _isQuickAmount
-                        ? AppTheme.primary
-                        : AppTheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(24),
+                    color: isSelected ? AppTheme.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color:
-                          _controller.text == amount.toString() &&
-                              _isQuickAmount
+                      color: isSelected
                           ? AppTheme.primary
                           : AppTheme.outlineVariant,
                       width: 1,
                     ),
+                    boxShadow: AppTheme.cardShadow,
                   ),
                   child: Text(
-                    '${CurrencyHelper.symbol}${amount.toString()}',
+                    '+${CurrencyHelper.symbol}${amount.toString()}',
                     style: GoogleFonts.jetBrainsMono(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          _controller.text == amount.toString() &&
-                              _isQuickAmount
-                          ? AppTheme.onPrimary
-                          : AppTheme.onSurface,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.white : AppTheme.onSurface,
                     ),
                   ),
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
 
-          // Goal Progress Preview
+          // Progress Preview
           if (_controller.text.isNotEmpty) ...[
             _buildProgressPreview(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
           ],
 
-          // Add Button
+          // Confirm Button
           SizedBox(
             width: double.infinity,
-            height: 54,
-            child: ElevatedButton.icon(
+            height: 48,
+            child: CupertinoButton(
+              color: AppTheme.primary,
+              borderRadius: BorderRadius.circular(24),
+              padding: EdgeInsets.zero,
               onPressed: _addSavings,
-              icon: const Icon(Icons.add_rounded, size: 20),
-              label: Text(
-                'Add Savings',
-                style: GoogleFonts.manrope(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    CupertinoIcons.plus_circle,
+                    size: 18,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Confirm Contribution',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -264,15 +313,15 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
     final isGoalAchieved = newSavedAmount >= widget.goal.targetAmount;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isGoalAchieved
-            ? AppTheme.secondaryContainer.withValues(alpha: 0.2)
+            ? AppTheme.mint.withValues(alpha: 0.2)
             : AppTheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isGoalAchieved ? AppTheme.secondary : AppTheme.outlineVariant,
-          width: 1,
+          color: isGoalAchieved ? AppTheme.primary : AppTheme.outlineVariant,
+          width: 0.8,
         ),
       ),
       child: Column(
@@ -281,9 +330,9 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'New Progress',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
+                'Updated Progress',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.onSurfaceVariant,
                 ),
@@ -292,32 +341,32 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 4,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.secondary,
-                    borderRadius: BorderRadius.circular(4),
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     'GOAL ACHIEVED!',
-                    style: GoogleFonts.inter(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.onSecondary,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: newProgress,
-              minHeight: 8,
-              backgroundColor: AppTheme.surfaceContainerLowest,
+              minHeight: 6,
+              backgroundColor: Colors.white,
               valueColor: AlwaysStoppedAnimation(
-                isGoalAchieved ? AppTheme.secondary : AppTheme.primary,
+                isGoalAchieved ? AppTheme.primary : AppTheme.mintAccent,
               ),
             ),
           ),
@@ -326,9 +375,9 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${CurrencyHelper.symbol}${CurrencyHelper.format(newSavedAmount)}',
+                '${CurrencyHelper.symbol}${CurrencyHelper.format(newSavedAmount)} / ${CurrencyHelper.symbol}${CurrencyHelper.format(widget.goal.targetAmount)}',
                 style: GoogleFonts.jetBrainsMono(
-                  fontSize: 14,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.onSurface,
                 ),
@@ -336,9 +385,9 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
               Text(
                 '${(newProgress * 100).toStringAsFixed(1)}%',
                 style: GoogleFonts.jetBrainsMono(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isGoalAchieved ? AppTheme.secondary : AppTheme.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
                 ),
               ),
             ],
@@ -349,17 +398,9 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
   }
 
   void _addSavings() {
+    HapticFeedback.lightImpact();
     final inputAmount = double.tryParse(_controller.text);
     if (inputAmount == null || inputAmount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please enter a valid amount',
-            style: GoogleFonts.inter(),
-          ),
-          backgroundColor: AppTheme.error,
-        ),
-      );
       return;
     }
 
@@ -370,31 +411,17 @@ class _AddSavingsBottomSheetState extends State<AddSavingsBottomSheet> {
 
     Navigator.pop(context);
 
-    // Check if goal is achieved
     final newSavedAmount = widget.goal.savedAmount + storedAmount;
     if (newSavedAmount >= widget.goal.targetAmount) {
-      // Navigate to goal achieved screen
       Navigator.push(
         context,
-        MaterialPageRoute(
+        CupertinoPageRoute(
           builder: (_) => GoalAchievedScreen(
             goal: widget.goal.copyWith(
               savedAmount: newSavedAmount,
               status: GoalStatus.achieved,
             ),
           ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Added ${CurrencyHelper.symbol}${CurrencyHelper.format(inputAmount)} to ${widget.goal.name}',
-            style: GoogleFonts.inter(),
-          ),
-          backgroundColor: AppTheme.secondary,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     }

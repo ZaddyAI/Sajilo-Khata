@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../models/user_model.dart';
-import 'firebase_firestore_datasource.dart';
 
 class FirebaseAuthDataSource {
   final FirebaseAuth _auth;
@@ -96,7 +95,6 @@ class FirebaseAuthDataSource {
     final doc = await _db.collection('users').doc(user.uid).get();
     if (!doc.exists) {
       await _saveProfileData(user.uid, user.displayName ?? 'User', 'NPR');
-      await FirebaseFirestoreDataSource().createSampleData();
     }
   }
 

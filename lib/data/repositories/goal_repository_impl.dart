@@ -64,8 +64,24 @@ class GoalRepositoryImpl implements GoalRepository {
   Future<Result<void>> contributeToGoal(String goalId, double amount) async {
     final goal = _localDataSource.getGoal(goalId);
     if (goal != null) {
+      final contribution = SavingsContribution(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        amount: amount,
+        date: DateTime.now(),
+      );
+      final newHistory = [...goal.savingsHistory, contribution];
+      final newSaved = goal.savedAmount + amount;
+      final newStatus = newSaved >= goal.targetAmount
+          ? GoalStatus.achieved
+          : goal.requiredDailyAmount > (goal.remaining / 1)
+          ? GoalStatus.behind
+          : GoalStatus.onTrack;
       _localDataSource.updateGoal(
-        goal.copyWith(savedAmount: goal.savedAmount + amount),
+        goal.copyWith(
+          savedAmount: newSaved,
+          status: newStatus,
+          savingsHistory: newHistory,
+        ),
       );
     }
     try {
@@ -87,7 +103,21 @@ class GoalRepositoryImpl implements GoalRepository {
       final newAmt = (goal.savedAmount - amount) < 0
           ? 0.0
           : (goal.savedAmount - amount);
-      _localDataSource.updateGoal(goal.copyWith(savedAmount: newAmt));
+      final newHistory = goal.savingsHistory
+          .where((c) => c.id != contributionId)
+          .toList();
+      final newStatus = newAmt >= goal.targetAmount
+          ? GoalStatus.achieved
+          : newAmt > 0 && goal.requiredDailyAmount > (goal.remaining / 1)
+          ? GoalStatus.behind
+          : GoalStatus.onTrack;
+      _localDataSource.updateGoal(
+        goal.copyWith(
+          savedAmount: newAmt,
+          status: newStatus,
+          savingsHistory: newHistory,
+        ),
+      );
     }
     try {
       await _remoteDataSource.removeContribution(
@@ -106,12 +136,36 @@ class GoalRepositoryImpl implements GoalRepository {
     String goalId,
     String contributionId,
     double oldAmount,
-    double newAmount,
-  ) async {
+    double newAmount, {
+    DateTime? newDate,
+  }) async {
     final goal = _localDataSource.getGoal(goalId);
     if (goal != null) {
+      final newSaved = (goal.savedAmount - oldAmount + newAmount).clamp(
+        0.0,
+        double.infinity,
+      );
+      final newHistory = goal.savingsHistory.map((c) {
+        if (c.id == contributionId) {
+          return SavingsContribution(
+            id: c.id,
+            amount: newAmount,
+            date: newDate ?? c.date,
+          );
+        }
+        return c;
+      }).toList();
+      final newStatus = newSaved >= goal.targetAmount
+          ? GoalStatus.achieved
+          : newSaved > 0 && goal.requiredDailyAmount > (goal.remaining / 1)
+          ? GoalStatus.behind
+          : GoalStatus.onTrack;
       _localDataSource.updateGoal(
-        goal.copyWith(savedAmount: goal.savedAmount - oldAmount + newAmount),
+        goal.copyWith(
+          savedAmount: newSaved,
+          status: newStatus,
+          savingsHistory: newHistory,
+        ),
       );
     }
     try {
@@ -120,6 +174,7 @@ class GoalRepositoryImpl implements GoalRepository {
         contributionId,
         oldAmount,
         newAmount,
+        newDate: newDate,
       );
       return Result.success(null);
     } on Exception catch (e) {

@@ -41,6 +41,9 @@ class SyncRepositoryImpl implements SyncRepository {
   bool get hasPendingSync => _localDataSource.hasPendingSync;
 
   @override
+  int get pendingSyncCount => _localDataSource.getSyncQueue().length;
+
+  @override
   Future<void> init() async {
     try {
       _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
@@ -59,6 +62,11 @@ class SyncRepositoryImpl implements SyncRepository {
       final result = await _connectivity.checkConnectivity();
       _lastResult = result.isNotEmpty ? result.first : ConnectivityResult.none;
       _connectivityController.add(_lastResult != ConnectivityResult.none);
+
+      // Automatically sync on startup if user is already online
+      if (_lastResult != ConnectivityResult.none) {
+        syncAll();
+      }
     } catch (_) {
       _lastResult = ConnectivityResult.none;
       _connectivityController.add(false);

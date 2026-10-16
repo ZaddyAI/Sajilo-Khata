@@ -19,6 +19,16 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   FirebaseFirestoreDataSource get _db =>
       _firestore ??= context.read<FirebaseFirestoreDataSource>();
 
+  /// Guests (and offline starts) have no Firebase session - their SMS settings
+  /// live in SharedPreferences instead of Firestore.
+  bool get _isSignedIn {
+    try {
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -26,26 +36,39 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    var enabled = prefs.getBool('smsAutoTrack') ?? true;
+    var groups = prefs.getStringList('smsGroups') ?? <String>[];
+
+    if (_isSignedIn) {
+      try {
+        enabled = await _db.getSmsAutoTrack().timeout(
+          const Duration(seconds: 5),
+        );
+        final cloudGroups = await _db.getSelectedSmsGroups().timeout(
+          const Duration(seconds: 5),
+        );
+        // Cloud is the source of truth when signed in, but keep any senders
+        // selected while browsing as a guest.
+        groups = cloudGroups.isNotEmpty ? cloudGroups : groups;
+      } catch (_) {
+        // Offline / timed out - fall back to the local values read above.
+      }
+    }
+
+    // Always make the parser aware of the selection (also for guests, whose
+    // selection would otherwise never reach SmsService).
+    SmsService().updateSelectedGroups(groups);
+
     try {
-      final enabled = await _db.getSmsAutoTrack();
-      final groups = await _db.getSelectedSmsGroups();
-      SmsService().updateSelectedGroups(groups);
       await _scanSenders();
-      if (mounted) {
-        setState(() {
-          _manualOnly = !enabled;
-          _selectedGroups = groups;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _manualOnly = true;
-          _selectedGroups = [];
-          _isLoading = false;
-        });
-      }
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _manualOnly = !enabled;
+        _selectedGroups = groups;
+        _isLoading = false;
+      });
     }
   }
 
@@ -78,9 +101,71 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('SMS Auto-Track')),
+      backgroundColor: AppTheme.background,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.background.withValues(alpha: 0.88),
+                border: const Border(
+                  bottom: BorderSide(color: Color(0x12000000), width: 0.5),
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.pop(context),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.back,
+                              size: 22,
+                              color: AppTheme.primary,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              'Settings',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'SMS Auto-Tracking',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                          color: AppTheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         children: [
           _buildInfoCard(),
           const SizedBox(height: 16),
@@ -89,18 +174,28 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
           _buildStatusCard(),
           if (_isSyncing) ...[
             const SizedBox(height: 24),
-            const Center(
-              child: CircularProgressIndicator(color: AppTheme.primary),
-            ),
+            const Center(child: CupertinoActivityIndicator(radius: 14)),
           ],
           if (!_manualOnly && !_isSyncing) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
-              height: 50,
+              height: 52,
               child: ElevatedButton.icon(
                 onPressed: _requestSmsPermission,
-                icon: const Icon(Icons.security, size: 20),
-                label: const Text('Grant SMS Permission'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.secondary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: const StadiumBorder(),
+                ),
+                icon: const Icon(CupertinoIcons.shield_fill, size: 18),
+                label: Text(
+                  'Grant SMS Permission',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
           ],
@@ -113,45 +208,44 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppTheme.signatureGradient,
+        gradient: AppTheme.primaryGradient,
         borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        boxShadow: AppTheme.dashboardShadow,
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.sms_rounded,
-              color: AppTheme.onPrimary,
-              size: 24,
+              CupertinoIcons.chat_bubble_2_fill,
+              color: Colors.white,
+              size: 22,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'SMS Auto-Track',
-                  style: TextStyle(
-                    fontFamily: 'Manrope',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.onPrimary,
+                Text(
+                  'On-Device SMS Parsing',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
-                  'Select senders from your device\nmessages to track transactions automatically.',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13,
-                    color: AppTheme.onPrimary.withValues(alpha: 0.7),
-                    height: 1.4,
+                  'Bank SMS are parsed privately on your device. Messages are never transmitted to external servers.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -165,26 +259,26 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   Widget _buildSyncModeCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-        border: Border.all(color: AppTheme.outlineVariant, width: 1),
-      ),
+      decoration: AppTheme.iosCardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Sync Mode',
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            'TRACKING MODE',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+              color: AppTheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: AppTheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+              borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+              border: Border.all(color: AppTheme.outlineVariant, width: 0.8),
             ),
             child: Row(
               children: [
@@ -193,29 +287,32 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
                     onTap: _isLoading ? null : () => _setMode(true),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: _manualOnly
-                            ? AppTheme.surfaceContainerLowest
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
-                        boxShadow: _manualOnly ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ] : [],
+                        color: _manualOnly ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.pillRadius,
+                        ),
+                        boxShadow: _manualOnly
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Center(
                         child: Text(
-                          'Manual',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
+                          'Manual Entry',
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: _manualOnly
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                             color: _manualOnly
-                                ? AppTheme.primary
+                                ? AppTheme.onSurface
                                 : AppTheme.onSurfaceVariant,
                           ),
                         ),
@@ -228,29 +325,32 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
                     onTap: _isLoading ? null : () => _setMode(false),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: !_manualOnly
-                            ? AppTheme.surfaceContainerLowest
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
-                        boxShadow: !_manualOnly ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ] : [],
+                        color: !_manualOnly ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.pillRadius,
+                        ),
+                        boxShadow: !_manualOnly
+                            ? [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Center(
                         child: Text(
-                          'Automatic',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
+                          'Automatic Sync',
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: !_manualOnly
+                                ? FontWeight.w700
+                                : FontWeight.w500,
                             color: !_manualOnly
-                                ? AppTheme.primary
+                                ? AppTheme.onSurface
                                 : AppTheme.onSurfaceVariant,
                           ),
                         ),
@@ -266,26 +366,38 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
             Row(
               children: [
                 Text(
-                  'Select Senders',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  'Select Bank Senders',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.onSurface,
+                  ),
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  icon: _isScanning
-                      ? const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.refresh_rounded, size: 18),
-                  label: Text(_isScanning ? 'Scanning...' : 'Scan'),
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
                   onPressed: _isScanning ? null : _scanSenders,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_isScanning)
+                        const CupertinoActivityIndicator(radius: 8)
+                      else
+                        const Icon(
+                          CupertinoIcons.arrow_clockwise,
+                          size: 14,
+                          color: AppTheme.primary,
+                        ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _isScanning ? 'Scanning...' : 'Scan Device',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -293,23 +405,27 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
             const SizedBox(height: 12),
             if (_deviceSenders.isEmpty)
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.outlineVariant, width: 1),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Row(
                   children: [
                     const Icon(
-                      Icons.sms_outlined,
+                      CupertinoIcons.info,
                       size: 18,
                       color: AppTheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      'No senders found - tap Scan',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Expanded(
+                      child: Text(
+                        'No SMS senders found yet. Tap "Scan Device" above.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -320,76 +436,109 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
                 runSpacing: 8,
                 children: _deviceSenders.map((sender) {
                   final isSelected = _selectedGroups.contains(sender);
-                  return FilterChip(
-                    label: Text(
-                      sender.length > 12
-                          ? '${sender.substring(0, 12)}...'
-                          : sender,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: isSelected
-                            ? AppTheme.primary
-                            : AppTheme.onSurfaceVariant,
-                      ),
-                    ),
-                    selected: isSelected,
-                    onSelected: (selected) async {
+                  return GestureDetector(
+                    onTap: () async {
+                      HapticFeedback.selectionClick();
                       final newGroups = List<String>.from(_selectedGroups);
-                      if (selected) {
+                      if (!isSelected) {
                         newGroups.add(sender);
                       } else {
                         newGroups.remove(sender);
                       }
-                      await _db.setSelectedSmsGroups(newGroups);
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setStringList('smsGroups', newGroups);
+                      try {
+                        await _db.setSelectedSmsGroups(newGroups);
+                      } catch (_) {
+                        // Offline / guest: local preference already saved.
+                      }
                       SmsService().updateSelectedGroups(newGroups);
                       setState(() => _selectedGroups = newGroups);
                     },
-                    selectedColor: AppTheme.primary.withValues(alpha: 0.12),
-                    checkmarkColor: AppTheme.primary,
-                    side: BorderSide(
-                      color: isSelected
-                          ? AppTheme.primary.withValues(alpha: 0.3)
-                          : AppTheme.outlineVariant,
-                      width: 1,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppTheme.mint : Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.pillRadius,
+                        ),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppTheme.primary
+                              : AppTheme.outlineVariant,
+                          width: isSelected ? 1.4 : 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isSelected) ...[
+                            const Icon(
+                              CupertinoIcons.checkmark_alt,
+                              size: 13,
+                              color: AppTheme.primaryDark,
+                            ),
+                            const SizedBox(width: 5),
+                          ],
+                          Text(
+                            sender.length > 14
+                                ? '${sender.substring(0, 14)}...'
+                                : sender,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? AppTheme.primaryDark
+                                  : AppTheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
               ),
             if (_selectedGroups.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
+              const Divider(height: 0.8, color: AppTheme.outlineVariant),
+              const SizedBox(height: 14),
               Text(
-                'Import from Selected',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                'Historical Sync Periods',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface,
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   _importChip(
-                    icon: Icons.today_rounded,
+                    icon: CupertinoIcons.calendar_today,
                     label: 'Today',
                     onTap: _isSyncing ? null : () => _syncSms(0),
                   ),
                   _importChip(
-                    icon: Icons.date_range_rounded,
+                    icon: CupertinoIcons.calendar,
                     label: '7 Days',
                     onTap: _isSyncing ? null : () => _syncSms(7),
                   ),
                   _importChip(
-                    icon: Icons.calendar_month_rounded,
+                    icon: CupertinoIcons.calendar,
                     label: '30 Days',
                     onTap: _isSyncing ? null : () => _syncSms(30),
                   ),
                   _importChip(
-                    icon: Icons.more_horiz_rounded,
-                    label: 'Custom',
+                    icon: CupertinoIcons.ellipsis,
+                    label: 'Custom Date',
                     onTap: _isSyncing ? null : () => _selectCustomDate(context),
                   ),
                 ],
@@ -406,22 +555,30 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
     required String label,
     required VoidCallback? onTap,
   }) {
-    return ActionChip(
-      avatar: Icon(icon, size: 16, color: AppTheme.primary),
-      label: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppTheme.primary,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+          border: Border.all(color: AppTheme.outlineVariant, width: 0.8),
         ),
-      ),
-      onPressed: onTap,
-      backgroundColor: AppTheme.primary.withValues(alpha: 0.06),
-      side: const BorderSide(color: AppTheme.primary, width: 1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTheme.chipRadius),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: AppTheme.primary),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryDark,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -434,57 +591,50 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
     Color iconColor;
 
     if (_manualOnly) {
-      icon = Icons.info_outline_rounded;
-      title = 'Manual Mode';
-      subtitle = 'Add transactions using + on Dashboard';
-      bgColor = const Color(0xFFE2F0FF);
-      iconColor = const Color(0xFF0057B3);
+      icon = CupertinoIcons.hand_draw;
+      title = 'Manual Mode Active';
+      subtitle =
+          'You have complete control. Add transactions using the + button.';
+      bgColor = AppTheme.surfaceContainerLow;
+      iconColor = AppTheme.primary;
     } else {
-      icon = Icons.security_rounded;
-      title = 'Automatic Mode';
-      subtitle = 'SMS permission required. Your data stays on your device.';
-      bgColor = const Color(0xFFFFF4E0);
-      iconColor = const Color(0xFFB8860B);
+      icon = CupertinoIcons.checkmark_shield_fill;
+      title = 'Automatic Tracking Active';
+      subtitle =
+          'SMS permission granted. Transaction messages parsed locally on-device.';
+      bgColor = AppTheme.mint;
+      iconColor = AppTheme.primaryDark;
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-        border: Border.all(color: AppTheme.outlineVariant, width: 1),
-      ),
+      padding: const EdgeInsets.all(18),
+      decoration: AppTheme.iosCardDecoration,
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 20),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: iconColor,
+                    color: AppTheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
-                    color: iconColor.withValues(alpha: 0.8),
+                    color: AppTheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -496,11 +646,19 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
   }
 
   Future<void> _setMode(bool manual) async {
+    HapticFeedback.selectionClick();
     if (manual == false) {
       final granted = await _requestSmsPermission();
       if (!granted) return;
     }
-    await _db.setSmsAutoTrack(!manual);
+    final enabled = !manual;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('smsAutoTrack', enabled);
+    try {
+      await _db.setSmsAutoTrack(enabled);
+    } catch (_) {
+      // Offline / guest: the local preference is what SmsService reads.
+    }
     setState(() => _manualOnly = manual);
   }
 
@@ -510,22 +668,25 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
     final result = await Permission.sms.request();
     if (result.isGranted) return true;
     if (result.isPermanentlyDenied && mounted) {
-      showDialog(
+      showSmoothDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
+        builder: (ctx) => CupertinoAlertDialog(
           title: const Text('Permission Required'),
-          content: const Text('Enable SMS permission in settings.'),
+          content: const Text(
+            'Enable SMS permission in your device system settings to parse bank transactions.',
+          ),
           actions: [
-            TextButton(
+            CupertinoDialogAction(
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
+            CupertinoDialogAction(
+              isDefaultAction: true,
               onPressed: () {
                 Navigator.pop(ctx);
                 openAppSettings();
               },
-              child: const Text('Open Settings'),
+              child: const Text('Settings'),
             ),
           ],
         ),
@@ -565,7 +726,11 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
       return;
     }
     setState(() => _isSyncing = true);
-    final fromDate = DateTime.now().subtract(Duration(days: daysAgo));
+    final now = DateTime.now();
+    // "Today" must mean from the start of the day, not from this exact moment.
+    final fromDate = daysAgo <= 0
+        ? DateTime(now.year, now.month, now.day)
+        : now.subtract(Duration(days: daysAgo));
     await _doSync(fromDate);
   }
 
@@ -591,15 +756,27 @@ class _SmsSettingsScreenState extends State<SmsSettingsScreen> {
         );
         if (success) imported++;
       }
+      // Push the freshly imported transactions into the UI immediately instead
+      // of waiting for a manual pull-to-refresh (guest sessions have no
+      // Firestore stream to trigger an update).
+      if (mounted) {
+        context.read<TransactionBloc>().add(TransactionLoadRequested());
+      }
       setState(() => _isSyncing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Imported $imported transactions')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Successfully imported $imported transactions'),
+          ),
+        );
+      }
     } catch (e) {
       setState(() => _isSyncing = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 }

@@ -64,7 +64,11 @@ class FirebaseFirestoreDataSource {
 
   Stream<List<Transaction>> transactionsStream() {
     final ref = _txRef;
-    if (ref == null) return const Stream.empty();
+    // Not signed in (guest / signed out): surface an error so listeners fall
+    // back to the locally stored (Hive) transactions instead of an empty list.
+    if (ref == null) {
+      return Stream.error(Exception('Not authenticated'));
+    }
     return ref
         .orderBy('dateAD', descending: true)
         .snapshots()
@@ -85,8 +89,10 @@ class FirebaseFirestoreDataSource {
               }
             },
             handleError: (error, stack, sink) {
+              // Propagate (e.g. permission denied after sign-out) so the bloc
+              // can re-emit the local transactions rather than clearing them.
               print('[Firestore] tx stream error: $error');
-              sink.add([]);
+              sink.addError(error, stack);
             },
           ),
         );
@@ -123,7 +129,11 @@ class FirebaseFirestoreDataSource {
 
   Stream<List<Goal>> goalsStream() {
     final ref = _goalRef;
-    if (ref == null) return const Stream.empty();
+    // Not signed in (guest / signed out): surface an error so listeners fall
+    // back to the locally stored (Hive) goals instead of an empty list.
+    if (ref == null) {
+      return Stream.error(Exception('Not authenticated'));
+    }
     return ref
         .orderBy('deadlineAD')
         .snapshots()
@@ -142,8 +152,10 @@ class FirebaseFirestoreDataSource {
               }
             },
             handleError: (error, stack, sink) {
+              // Propagate so the bloc falls back to local goals instead of
+              // wiping the list when the session changes (sign-out).
               print('[Firestore] goal stream error: $error');
-              sink.add([]);
+              sink.addError(error, stack);
             },
           ),
         );
@@ -241,8 +253,9 @@ class FirebaseFirestoreDataSource {
     String goalId,
     String contributionId,
     double oldAmount,
-    double newAmount,
-  ) async {
+    double newAmount, {
+    DateTime? newDate,
+  }) async {
     final ref = _goalRef;
     if (ref == null) return;
     final doc = await ref.doc(goalId).get();
@@ -251,7 +264,11 @@ class FirebaseFirestoreDataSource {
     final goal = GoalModel.fromMap(doc.data()!, doc.id);
     final newHistory = goal.savingsHistory.map((c) {
       if (c.id == contributionId) {
-        return SavingsContribution(id: c.id, amount: newAmount, date: c.date);
+        return SavingsContribution(
+          id: c.id,
+          amount: newAmount,
+          date: newDate ?? c.date,
+        );
       }
       return c;
     }).toList();
@@ -330,40 +347,6 @@ class FirebaseFirestoreDataSource {
   // ── Sample Data ──
 
   Future<void> createSampleData() async {
-    final txRef = _txRef;
-    final goalRef = _goalRef;
-    if (txRef == null || goalRef == null) return;
-
-    final existingTx = await txRef.limit(1).get();
-    final existingGoal = await goalRef.limit(1).get();
-    final now = DateTime.now();
-
-    if (existingTx.docs.isEmpty) {
-      await txRef.doc('welcome-tx').set({
-        'amount': 0,
-        'type': 'credit',
-        'source': 'manual',
-        'category': 'Other',
-        'bank': null,
-        'note': 'Welcome! Tap + to add your first transaction.',
-        'dateAD': now.toIso8601String(),
-        'dateBS': '',
-        'createdAt': now.toIso8601String(),
-      });
-    }
-
-    if (existingGoal.docs.isEmpty) {
-      await goalRef.doc('sample-goal').set({
-        'name': 'Your First Goal',
-        'emoji': '🎯',
-        'targetAmount': 10000,
-        'savedAmount': 0,
-        'deadlineAD': now.add(const Duration(days: 90)).toIso8601String(),
-        'deadlineBS': '',
-        'status': 'on_track',
-        'createdAt': now.toIso8601String(),
-        'savingsHistory': [],
-      });
-    }
+    // No-op: Sajilo Khata strictly uses genuine user transactions and goals.
   }
 }

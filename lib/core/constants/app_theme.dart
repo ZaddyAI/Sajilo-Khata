@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -42,6 +43,7 @@ class CurrencyHelper {
   static String currency = 'NPR';
   static String get symbol => getCurrencySymbol(currency);
   static IconData get icon => getCurrencyIcon(currency);
+
   static String format(double amount) {
     if (currency == 'USD' && ExchangeRateService.instance.isAvailable) {
       final displayAmount = ExchangeRateService.instance.convertNprToUsd(
@@ -89,125 +91,212 @@ class CurrencyNotifier extends ChangeNotifier {
   }
 }
 
+/// Verdant Sol - Biophilic Fintech Design System + iOS Cupertino Aesthetics
 class AppTheme {
-  // Primary - Deep Blue (Institutional trust & security)
-  static const primary = Color(0xFF000666);
-  static const primaryContainer = Color(0xFF1A237E);
+  // Brand Colors from theme_template.md
+  // Primary (Muted Moss signature hue)
+  static const primary = Color(0xFF5A7853);
+  static const primaryDark = Color(0xFF394835);
+  static const primaryLight = Color(0xFF75966D);
+  static const primaryDeep = Color(0xFF2E3A2B);
+
+  // Secondary (Deep Obsidian Moss for dock, heavy text, matte surfaces)
+  static const secondary = Color(0xFF1B221A);
+  static const secondaryDark = Color(0xFF121612);
+
+  // Mint / Botanical Containers
+  static const mint = Color(0xFFDDE5D8);
+  static const mintAccent = Color(0xFFAFD0A4);
+  static const paleMint = Color(0xFFF2F4F0);
+  static const mintPale = Color(0xFFECEEEA);
+  static const mintLight = Color(0xFFDDE5D8);
+
+  // Material 3 Primary Container mappings
+  static const primaryContainer = Color(0xFFDDE5D8);
   static const onPrimary = Color(0xFFFFFFFF);
-  static const onPrimaryContainer = Color(0xFF8690EE);
+  static const onPrimaryContainer = Color(0xFF062105);
 
-  // Secondary - Emerald Green (Growth & credit)
-  static const secondary = Color(0xFF1B6D24);
-  static const secondaryContainer = Color(0xFFA0F399);
+  // Secondary Container
+  static const secondaryContainer = Color(0xFFDDE5D8);
   static const onSecondary = Color(0xFFFFFFFF);
-  static const onSecondaryContainer = Color(0xFF217128);
+  static const onSecondaryContainer = Color(0xFF5F665C);
 
-  // Tertiary - Deep Red (Expenses & debit)
-  static const tertiary = Color(0xFF400003);
-  static const tertiaryContainer = Color(0xFF670007);
+  // Tertiary / Expense (Blossom Coral)
+  static const tertiary = Color(0xFFE07A70);
+  static const tertiaryContainer = Color(0xFFFFF3F1);
   static const onTertiary = Color(0xFFFFFFFF);
-  static const onTertiaryContainer = Color(0xFFFF635A);
+  static const onTertiaryContainer = Color(0xFF93000A);
 
-  // Background & Surface
-  static const background = Color(0xFFF7F9FC);
-  static const onBackground = Color(0xFF191C1E);
+  // Background & Surfaces (Warm Limestone & Pure White Paper Cards)
+  static const background = Color(0xFFF8FAF6);
+  static const onBackground = Color(0xFF191C1A);
+  static const scaffoldBg = Color(0xFFF8FAF6);
+  static const warmIvory = Color(0xFFF8FAF6);
 
-  static const surface = Color(0xFFF7F9FC);
-  static const surfaceBright = Color(0xFFF7F9FC);
+  static const surface = Color(0xFFF8FAF6);
+  static const surfaceBright = Color(0xFFFFFFFF);
+  static const surfaceCard = Color(0xFFFFFFFF);
   static const surfaceContainerLowest = Color(0xFFFFFFFF);
-  static const surfaceContainerLow = Color(0xFFF2F4F7);
-  static const surfaceContainer = Color(0xFFECEEF1);
-  static const surfaceContainerHigh = Color(0xFFE6E8EB);
-  static const surfaceContainerHighest = Color(0xFFE0E3E6);
-  static const surfaceDim = Color(0xFFD8DADD);
-  static const surfaceVariant = Color(0xFFE0E3E6);
+  static const surfaceContainerLow = Color(0xFFF2F4F0);
+  static const surfaceContainer = Color(0xFFECEEEA);
+  static const surfaceContainerHigh = Color(0xFFE7E9E5);
+  static const surfaceContainerHighest = Color(0xFFE1E3DF);
+  static const surfaceDim = Color(0xFFD8DBD7);
+  static const surfaceVariant = Color(0xFFE1E3DF);
+  static const surfaceMint = Color(0xFFDDE5D8);
 
-  static const onSurface = Color(0xFF191C1E);
-  static const onSurfaceVariant = Color(0xFF454652);
+  // Typography Colors
+  static const onSurface = Color(0xFF191C1A);
+  static const onSurfaceVariant = Color(0xFF434840);
+  static const primaryText = Color(0xFF191C1A);
+  static const secondaryText = Color(0xFF434840);
 
-  // Error
+  // Finance Status Colors
+  static const income = Color(0xFF425F3C);
+  static const incomeEmerald = Color(0xFF425F3C);
+  static const expense = Color(0xFFE07A70);
+  static const expenseCoral = Color(0xFFE07A70);
+  static const coral = Color(0xFFE07A70);
+  static const warning = Color(0xFFD99B26);
+
+  // Error Status
   static const error = Color(0xFFBA1A1A);
   static const errorContainer = Color(0xFFFFDAD6);
   static const onError = Color(0xFFFFFFFF);
   static const onErrorContainer = Color(0xFF93000A);
 
-  // Outline
-  static const outline = Color(0xFF767683);
-  static const outlineVariant = Color(0xFFC6C5D4);
+  // Outlines & Borders
+  static const outline = Color(0xFF73796F);
+  static const outlineVariant = Color(0xFFE2E6DF);
+  static const border = Color(0xFFE2E6DF);
+  static const cardBorder = Color(0xFFE2E6DF);
+  static const borderDefault = Color(0xFFE2E6DF);
 
   // Fixed variants
-  static const primaryFixed = Color(0xFFE0E0FF);
-  static const primaryFixedDim = Color(0xFFBDC2FF);
-  static const onPrimaryFixed = Color(0xFF000767);
-  static const onPrimaryFixedVariant = Color(0xFF343D96);
-  static const secondaryFixed = Color(0xFFA3F69C);
-  static const secondaryFixedDim = Color(0xFF88D982);
-  static const onSecondaryFixed = Color(0xFF002204);
-  static const onSecondaryFixedVariant = Color(0xFF005312);
+  static const primaryFixed = Color(0xFFCAECBF);
+  static const primaryFixedDim = Color(0xFFAFD0A4);
+  static const onPrimaryFixed = Color(0xFF062105);
+  static const onPrimaryFixedVariant = Color(0xFF314E2C);
+  static const secondaryFixed = Color(0xFFDDE5D8);
+  static const secondaryFixedDim = Color(0xFFC1C9BC);
+  static const onSecondaryFixed = Color(0xFF161D16);
+  static const onSecondaryFixedVariant = Color(0xFF41493F);
   static const tertiaryFixed = Color(0xFFFFDAD6);
-  static const tertiaryFixedDim = Color(0xFFFFB4AC);
-  static const onTertiaryFixed = Color(0xFF410003);
-  static const onTertiaryFixedVariant = Color(0xFF93000E);
+  static const tertiaryFixedDim = Color(0xFFFFB4AB);
+  static const onTertiaryFixed = Color(0xFF400203);
+  static const onTertiaryFixedVariant = Color(0xFF7B2D27);
 
   // Inverse
-  static const inverseSurface = Color(0xFF2D3133);
-  static const inverseOnSurface = Color(0xFFEFF1F4);
-  static const inversePrimary = Color(0xFFBDC2FF);
+  static const inverseSurface = Color(0xFF2E312F);
+  static const inverseOnSurface = Color(0xFFEFF1ED);
+  static const inversePrimary = Color(0xFFAFD0A4);
 
-  // Gradients
+  // Gradients from theme_template.md
+  // Botanical Moss Gradient: #75966D -> #5A7853 -> #394835
+  static const primaryGradient = LinearGradient(
+    colors: [Color(0xFF75966D), Color(0xFF5A7853), Color(0xFF394835)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Deep Obsidian Gradient: #1B221A -> #121612
+  static const obsidianGradient = LinearGradient(
+    colors: [Color(0xFF1B221A), Color(0xFF121612)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   static const signatureGradient = LinearGradient(
-    colors: [Color(0xFF000666), Color(0xFF1A237E)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    stops: [0.0, 1.0],
-  );
-
-  static const shimmerGradient = LinearGradient(
-    colors: [Color(0xFF000666), Color(0xFF1A237E), Color(0xFF000666)],
+    colors: [Color(0xFF5A7853), Color(0xFF394835), Color(0xFF1B221A)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const surfaceGradient = LinearGradient(
-    colors: [Color(0xFFFFFFFF), Color(0xFFF7F9FC)],
+  static const softBgGradient = LinearGradient(
+    colors: [Color(0xFFF8FAF6), Color(0xFFF2F4F0), Color(0xFFECEEEA)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
-  // Shadows - Tonal layers
+  static const surfaceGradient = LinearGradient(
+    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAF6)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  static const mintGradient = LinearGradient(
+    colors: [Color(0xFFDDE5D8), Color(0xFFAFD0A4)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // Elevation & Ambient Diffusion Shadows
   static List<BoxShadow> get cardShadow => [
     BoxShadow(
-      color: const Color(0xFF000000).withValues(alpha: 0.04),
-      blurRadius: 12,
+      color: const Color(0xFF283426).withValues(alpha: 0.05),
+      blurRadius: 18,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: const Color(0xFF000000).withValues(alpha: 0.02),
+      color: Colors.black.withValues(alpha: 0.02),
       blurRadius: 4,
+      offset: const Offset(0, 1),
+    ),
+  ];
+
+  static List<BoxShadow> get dashboardShadow => [
+    BoxShadow(
+      color: const Color(0xFF283426).withValues(alpha: 0.16),
+      blurRadius: 32,
+      offset: const Offset(0, 12),
+    ),
+    BoxShadow(
+      color: const Color(0xFF283426).withValues(alpha: 0.06),
+      blurRadius: 12,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  static List<BoxShadow> get dockShadow => [
+    BoxShadow(
+      color: const Color(0xFF121612).withValues(alpha: 0.22),
+      blurRadius: 28,
+      offset: const Offset(0, 8),
+    ),
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.08),
+      blurRadius: 8,
       offset: const Offset(0, 2),
     ),
   ];
 
-  static List<BoxShadow> get elevatedShadow => [
+  static List<BoxShadow> get buttonShadow => [
     BoxShadow(
-      color: const Color(0xFF000000).withValues(alpha: 0.08),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
-    ),
-    BoxShadow(
-      color: const Color(0xFF000000).withValues(alpha: 0.04),
-      blurRadius: 8,
+      color: const Color(0xFF5A7853).withValues(alpha: 0.24),
+      blurRadius: 14,
       offset: const Offset(0, 4),
     ),
   ];
 
-  // Border Radius - Soft (0.25rem)
-  static const inputRadius = 4.0;
-  static const buttonRadius = 4.0;
-  static const cardRadius = 8.0;
-  static const chipRadius = 9999.0;
+  static List<BoxShadow> get elevatedShadow => dashboardShadow;
 
-  // Spacing scale
+  // iOS Geometry Radii
+  static const radiusSm = 8.0;
+  static const radiusMd = 12.0;
+  static const radiusLg = 16.0;
+  static const tileRadius = 16.0;
+  static const squircleRadius = 14.0;
+  static const cardRadius = 22.0;
+  static const dashboardRadius = 26.0;
+  static const sheetRadius = 28.0;
+  static const pillRadius = 999.0;
+
+  // Compatibility aliases
+  static const inputRadius = 14.0;
+  static const buttonRadius = 999.0;
+  static const chipRadius = 999.0;
+
+  // Spacing Scale
   static const spacingUnit = 4.0;
   static const spacingXs = 4.0;
   static const spacingSm = 8.0;
@@ -215,127 +304,156 @@ class AppTheme {
   static const spacingLg = 24.0;
   static const spacingXl = 32.0;
 
+  // Plus Jakarta Sans (theme font, bundled in assets/fonts)
+  static TextStyle fontJakarta({
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.w500,
+    Color? color,
+    double? height,
+    double? letterSpacing,
+  }) {
+    return GoogleFonts.plusJakartaSans(
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color ?? onSurface,
+      height: height,
+      letterSpacing: letterSpacing,
+    );
+  }
+
   static TextTheme _buildTextTheme() {
     return TextTheme(
-      // display-lg: Manrope 48px 700
-      displayLarge: GoogleFonts.manrope(
+      displayLarge: fontJakarta(
         fontSize: 48,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.02,
-        height: 1.25,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -1.2,
+        height: 1.12,
         color: onSurface,
       ),
-      // display-md: Manrope 40px 700
-      displayMedium: GoogleFonts.manrope(
-        fontSize: 40,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.02,
+      displayMedium: fontJakarta(
+        fontSize: 38,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -1.0,
+        height: 1.15,
         color: onSurface,
       ),
-      // display-sm: Manrope 36px 700
-      displaySmall: GoogleFonts.manrope(
-        fontSize: 36,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.02,
-        color: onSurface,
-      ),
-      // headline-lg: Manrope 32px 600
-      headlineLarge: GoogleFonts.manrope(
+      displaySmall: fontJakarta(
         fontSize: 32,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.02,
-        color: onSurface,
-      ),
-      // headline-md: Manrope 24px 600
-      headlineMedium: GoogleFonts.manrope(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-      // headline-sm: Manrope 20px 600
-      headlineSmall: GoogleFonts.manrope(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-      // title-lg: Manrope 20px 600
-      titleLarge: GoogleFonts.manrope(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-      // title-md: Manrope 16px 600
-      titleMedium: GoogleFonts.manrope(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-      // title-sm: Manrope 14px 600
-      titleSmall: GoogleFonts.manrope(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-      // body-lg: Inter 18px 400
-      bodyLarge: GoogleFonts.inter(
-        fontSize: 18,
-        fontWeight: FontWeight.w400,
-        color: onSurface,
-      ),
-      // body-md: Inter 16px 400
-      bodyMedium: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: onSurface,
-      ),
-      // body-sm: Inter 14px 400
-      bodySmall: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: onSurface,
-      ),
-      // label-lg: Inter 14px 600
-      labelLarge: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: onSurface,
-      ),
-      // label-md: Inter 12px 700
-      labelMedium: GoogleFonts.inter(
-        fontSize: 12,
         fontWeight: FontWeight.w700,
-        letterSpacing: 0.05,
+        letterSpacing: -0.6,
         color: onSurface,
       ),
-      // label-sm: Inter 11px 500
-      labelSmall: GoogleFonts.inter(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
+      headlineLarge: fontJakarta(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        color: onSurface,
+      ),
+      headlineMedium: fontJakarta(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        color: onSurface,
+      ),
+      headlineSmall: fontJakarta(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
+        color: onSurface,
+      ),
+      titleLarge: fontJakarta(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.2,
+        color: onSurface,
+      ),
+      titleMedium: fontJakarta(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: onSurface,
+      ),
+      titleSmall: fontJakarta(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: onSurface,
+      ),
+      bodyLarge: fontJakarta(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        height: 1.45,
+        color: onSurface,
+      ),
+      bodyMedium: fontJakarta(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.4,
+        color: onSurface,
+      ),
+      bodySmall: fontJakarta(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
         color: onSurfaceVariant,
-        letterSpacing: 0.4,
+      ),
+      labelLarge: fontJakarta(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: onSurface,
+      ),
+      labelMedium: fontJakarta(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.1,
+        color: onSurface,
+      ),
+      labelSmall: fontJakarta(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.3,
+        color: onSurfaceVariant,
       ),
     );
   }
 
-  static TextStyle dataMono({Color? color}) {
+  static TextStyle dataMono({
+    Color? color,
+    double fontSize = 14,
+    FontWeight fontWeight = FontWeight.w600,
+  }) {
     return GoogleFonts.jetBrainsMono(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
       color: color ?? onSurface,
     );
   }
+
+  // iOS Card & Inset Grouped Decorations
+  static BoxDecoration get iosCardDecoration => BoxDecoration(
+    color: surfaceCard,
+    borderRadius: BorderRadius.circular(cardRadius),
+    border: Border.all(color: outlineVariant, width: 0.8),
+    boxShadow: cardShadow,
+  );
+
+  static BoxDecoration get iosGroupedCardDecoration => BoxDecoration(
+    color: surfaceCard,
+    borderRadius: BorderRadius.circular(cardRadius),
+    border: Border.all(color: outlineVariant, width: 0.8),
+    boxShadow: cardShadow,
+  );
 
   static ThemeData get lightTheme {
     final textTheme = _buildTextTheme();
 
     final outlinedBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(inputRadius),
-      borderSide: const BorderSide(color: outlineVariant, width: 1.5),
+      borderSide: const BorderSide(color: outlineVariant, width: 1.0),
     );
 
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: background,
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
         primary: primary,
@@ -365,15 +483,23 @@ class AppTheme {
         inversePrimary: inversePrimary,
       ),
       textTheme: textTheme,
+      cupertinoOverrideTheme: const NoDefaultCupertinoThemeData(
+        primaryColor: primary,
+        scaffoldBackgroundColor: background,
+        barBackgroundColor: surfaceCard,
+      ),
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
+        backgroundColor: background,
         foregroundColor: onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
-        titleTextStyle: textTheme.titleLarge,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: onSurface,
+          fontWeight: FontWeight.w700,
+        ),
       ),
       cardTheme: CardThemeData(
         color: surfaceContainerLowest,
@@ -381,43 +507,44 @@ class AppTheme {
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cardRadius),
+          side: const BorderSide(color: outlineVariant, width: 0.8),
         ),
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceContainerLow,
+        fillColor: surfaceContainerLowest,
         border: outlinedBorder,
-        enabledBorder: outlinedBorder.copyWith(
-          borderSide: const BorderSide(color: outlineVariant, width: 1.5),
-        ),
+        enabledBorder: outlinedBorder,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(inputRadius),
-          borderSide: const BorderSide(color: primary, width: 2),
+          borderSide: const BorderSide(color: primary, width: 1.6),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(inputRadius),
-          borderSide: const BorderSide(color: error, width: 1.5),
+          borderSide: const BorderSide(color: error, width: 1.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(inputRadius),
-          borderSide: const BorderSide(color: error, width: 2),
+          borderSide: const BorderSide(color: error, width: 1.6),
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(inputRadius),
-          borderSide: const BorderSide(color: outlineVariant, width: 1.5),
+          borderSide: const BorderSide(color: outlineVariant, width: 1.0),
         ),
-        hintStyle: textTheme.bodyMedium?.copyWith(color: onSurfaceVariant),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: onSurfaceVariant.withValues(alpha: 0.65),
+        ),
         labelStyle: textTheme.bodyMedium?.copyWith(color: onSurfaceVariant),
         floatingLabelStyle: textTheme.bodySmall?.copyWith(
           color: primary,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
         ),
         prefixIconColor: onSurfaceVariant,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: spacingMd,
-          vertical: spacingMd,
+          vertical: 14,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -425,73 +552,49 @@ class AppTheme {
           backgroundColor: primary,
           foregroundColor: onPrimary,
           elevation: 0,
+          shadowColor: primary.withValues(alpha: 0.2),
           padding: const EdgeInsets.symmetric(
             horizontal: spacingLg,
-            vertical: spacingMd,
+            vertical: 14,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(buttonRadius),
-          ),
+          shape: const StadiumBorder(),
           textStyle: textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.3,
+            letterSpacing: 0.2,
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: onSurface,
-          side: const BorderSide(color: outlineVariant, width: 1.5),
+          foregroundColor: primary,
+          side: const BorderSide(color: outlineVariant, width: 1.0),
           padding: const EdgeInsets.symmetric(
             horizontal: spacingLg,
-            vertical: spacingMd,
+            vertical: 14,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(buttonRadius),
+          shape: const StadiumBorder(),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
           ),
-          textStyle: textTheme.labelLarge,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primary,
-          textStyle: textTheme.labelLarge,
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: spacingSm,
             vertical: spacingSm / 2,
           ),
         ),
       ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: Colors.transparent,
-        indicatorColor: Colors.transparent,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return textTheme.labelSmall!.copyWith(
-              color: primary,
-              fontWeight: FontWeight.w700,
-            );
-          }
-          return textTheme.labelSmall!.copyWith(color: onSurfaceVariant);
-        }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: primary, size: 22);
-          }
-          return const IconThemeData(color: onSurfaceVariant, size: 22);
-        }),
-      ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: primary,
-        foregroundColor: onPrimary,
+        backgroundColor: secondary,
+        foregroundColor: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(buttonRadius),
-        ),
+        shape: const CircleBorder(),
       ),
       listTileTheme: ListTileThemeData(
         contentPadding: const EdgeInsets.symmetric(
@@ -499,7 +602,7 @@ class AppTheme {
           vertical: spacingSm / 2,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(buttonRadius),
+          borderRadius: BorderRadius.circular(radiusMd),
         ),
         titleTextStyle: textTheme.titleSmall,
         subtitleTextStyle: textTheme.bodySmall?.copyWith(
@@ -508,29 +611,32 @@ class AppTheme {
         iconColor: onSurfaceVariant,
       ),
       dividerTheme: const DividerThemeData(
-        color: surfaceContainer,
-        thickness: 1,
+        color: outlineVariant,
+        thickness: 0.8,
         space: 1,
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceContainer,
-        selectedColor: primary.withValues(alpha: 0.12),
+        backgroundColor: surfaceContainerLow,
+        selectedColor: mint,
         labelStyle: textTheme.labelMedium,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(chipRadius),
+          borderRadius: BorderRadius.circular(pillRadius),
         ),
-        side: BorderSide.none,
+        side: const BorderSide(color: outlineVariant, width: 0.8),
         padding: const EdgeInsets.symmetric(
-          horizontal: spacingSm / 2,
-          vertical: spacingXs / 2,
+          horizontal: spacingSm,
+          vertical: spacingXs,
         ),
       ),
       dialogTheme: DialogThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(cardRadius * 2),
+          borderRadius: BorderRadius.circular(cardRadius),
         ),
         backgroundColor: surfaceContainerLowest,
-        titleTextStyle: textTheme.titleLarge,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: onSurface,
+        ),
         contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: onSurfaceVariant,
         ),
@@ -538,27 +644,28 @@ class AppTheme {
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: surfaceContainerLowest,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(sheetRadius),
+          ),
         ),
-        showDragHandle: true,
-        dragHandleColor: outlineVariant,
+        showDragHandle: false,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: inverseSurface,
-        contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: inverseOnSurface,
-        ),
+        backgroundColor: secondary,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(color: Colors.white),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(buttonRadius),
+          borderRadius: BorderRadius.circular(radiusMd),
         ),
         behavior: SnackBarBehavior.floating,
       ),
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(cardRadius),
+          borderRadius: BorderRadius.circular(radiusMd),
+          side: const BorderSide(color: outlineVariant, width: 0.8),
         ),
         elevation: 8,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
+        color: surfaceContainerLowest,
+        shadowColor: const Color(0xFF191C1A).withValues(alpha: 0.1),
       ),
     );
   }
@@ -567,21 +674,53 @@ class AppTheme {
 }
 
 class AppColors {
-  // Credit = Emerald Green
-  static const credit = AppTheme.secondary;
-  static const income = AppTheme.secondary;
+  // Income / Credit = Muted Moss / Success
+  static const credit = AppTheme.income;
+  static const income = AppTheme.income;
 
-  // Debit = Deep Red
-  static const debit = AppTheme.tertiary;
-  static const expense = AppTheme.tertiary;
+  // Expense / Debit = Blossom Coral
+  static const debit = AppTheme.expense;
+  static const expense = AppTheme.expense;
 
   // Goal statuses
-  static const onTrack = AppTheme.secondary;
-  static const behind = AppTheme.tertiary;
-  static const achieved = AppTheme.secondary;
+  static const onTrack = AppTheme.income;
+  static const behind = AppTheme.expense;
+  static const achieved = AppTheme.income;
 
   // Semantic
-  static const success = AppTheme.secondary;
-  static const warning = Color(0xFFE65100);
+  static const success = AppTheme.income;
+  static const warning = AppTheme.warning;
   static const info = AppTheme.primary;
+}
+
+/// Standard smooth sheet animation style with iOS-like easing curves
+AnimationStyle get appSheetAnimationStyle => AnimationStyle(
+  curve: Curves.easeOutCubic,
+  reverseCurve: Curves.easeInCubic,
+  duration: const Duration(milliseconds: 320),
+  reverseDuration: const Duration(milliseconds: 240),
+);
+
+/// Smooth iOS-style dialog with fluid scale and opacity animations on open and close
+Future<T?> showSmoothDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  bool barrierDismissible = true,
+  String? barrierLabel,
+}) {
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: barrierDismissible,
+    barrierLabel: barrierLabel ?? 'Dismiss',
+    barrierColor: Colors.black.withValues(alpha: 0.45),
+    transitionDuration: const Duration(milliseconds: 260),
+    pageBuilder: (ctx, anim1, anim2) => builder(ctx),
+    transitionBuilder: (ctx, anim, secondaryAnim, child) {
+      final curvedValue = Curves.easeOutCubic.transform(anim.value);
+      return Transform.scale(
+        scale: 0.92 + (0.08 * curvedValue),
+        child: Opacity(opacity: anim.value.clamp(0.0, 1.0), child: child),
+      );
+    },
+  );
 }

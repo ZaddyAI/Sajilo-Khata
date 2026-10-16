@@ -19,21 +19,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   late String _category;
   late DateTime _date;
   bool _isEditing = false;
-  bool _isBS = false;
 
   static const _categories = [
-    ('Food', Icons.restaurant),
-    ('Transport', Icons.directions_car),
-    ('Shopping', Icons.shopping_bag),
-    ('Utilities', Icons.bolt),
-    ('Health', Icons.health_and_safety),
-    ('Education', Icons.school),
-    ('Remittance', Icons.send),
-    ('Salary', Icons.payments),
-    ('Savings', Icons.savings),
-    ('Entertainment', Icons.movie),
-    ('Groceries', Icons.local_grocery_store),
-    ('Other', Icons.receipt),
+    ('Food & Dining', CupertinoIcons.cart),
+    ('Transport', CupertinoIcons.car_detailed),
+    ('Shopping', CupertinoIcons.bag),
+    ('Utilities', CupertinoIcons.bolt),
+    ('Health', CupertinoIcons.heart),
+    ('Education', CupertinoIcons.book),
+    ('Remittance', CupertinoIcons.paperplane),
+    ('Salary', CupertinoIcons.money_dollar_circle),
+    ('Savings', CupertinoIcons.archivebox),
+    ('Entertainment', CupertinoIcons.film),
+    ('Groceries', CupertinoIcons.cart_fill),
+    ('Other', CupertinoIcons.doc_text),
   ];
 
   @override
@@ -63,145 +62,112 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final photoUrl = user?.photoURL;
-    final name = user?.displayName ?? user?.email ?? 'U';
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
-
     return Consumer<CurrencyNotifier>(
       builder: (context, currencyNotifier, _) {
         return Scaffold(
-          backgroundColor: AppTheme.surface,
-          appBar: AppBar(
-            backgroundColor: AppTheme.surface,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              color: AppTheme.primary,
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text(
-              _isEditing ? 'Edit Transaction' : 'Add Transaction',
-              style: GoogleFonts.manrope(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.primary,
-              ),
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
-              child: Container(height: 1, color: AppTheme.outlineVariant),
-            ),
-            actions: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppTheme.primaryContainer,
-                    width: 2,
+          backgroundColor: AppTheme.background,
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(56),
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.background.withValues(alpha: 0.9),
+                    border: const Border(
+                      bottom: BorderSide(color: Color(0x12000000), width: 0.5),
+                    ),
                   ),
-                ),
-                child: ClipOval(
-                  child: photoUrl != null && photoUrl.isNotEmpty
-                      ? Image.network(
-                          photoUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: AppTheme.primaryContainer,
-                              child: Center(
-                                child: Text(
-                                  initial,
-                                  style: GoogleFonts.manrope(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.onPrimaryContainer,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: AppTheme.primaryContainer,
-                          child: Center(
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => Navigator.pop(context),
                             child: Text(
-                              initial,
-                              style: GoogleFonts.manrope(
+                              'Cancel',
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.onSurfaceVariant,
                               ),
                             ),
                           ),
-                        ),
+                          Text(
+                            _isEditing ? 'Edit Entry' : 'New Transaction',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onSurface,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: _saveTransaction,
+                            child: Text(
+                              'Save',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(width: 16),
-            ],
+            ),
           ),
           body: Form(
             key: _formKey,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 24),
-                  _buildTypeToggle(),
-                  const SizedBox(height: 24),
+                  _buildIosTypeToggle(),
+                  const SizedBox(height: 16),
                   _buildAmountCard(currencyNotifier),
-                  const SizedBox(height: 24),
-                  _buildCategorySection(),
-                  const SizedBox(height: 24),
-                  _buildDateAccountGrid(),
-                  const SizedBox(height: 24),
-                  _buildNoteField(),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 20),
+                  _buildCategoryGrid(),
+                  const SizedBox(height: 20),
+                  _buildIosGroupedMetadataSection(),
                 ],
               ),
             ),
           ),
           bottomSheet: Container(
-            decoration: const BoxDecoration(color: AppTheme.surface),
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: Container(
+            color: AppTheme.background.withValues(alpha: 0.95),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+            child: SizedBox(
               width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppTheme.surface.withValues(alpha: 0),
-                    AppTheme.surface,
-                  ],
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _saveTransaction,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.secondary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: const StadiumBorder(),
                 ),
-              ),
-              padding: const EdgeInsets.only(top: 32),
-              child: SizedBox(
-                width: double.infinity,
-                height: 64,
-                child: ElevatedButton(
-                  onPressed: _saveTransaction,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: AppTheme.onPrimary,
-                    elevation: 4,
-                    shadowColor: AppTheme.primary.withValues(alpha: 0.3),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    _isEditing ? 'Update Transaction' : 'Add Transaction',
-                    style: GoogleFonts.manrope(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                child: Text(
+                  _isEditing ? 'Save Changes' : 'Confirm Transaction',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -212,75 +178,115 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  Widget _buildTypeToggle() {
+  Widget _buildIosTypeToggle() {
+    final isExpense = _type == TransactionType.debit;
     return Container(
-      padding: const EdgeInsets.all(4),
+      height: 48,
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(8),
+        color: AppTheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+        border: Border.all(color: AppTheme.outlineVariant, width: 0.8),
       ),
-      child: Stack(
+      child: Row(
         children: [
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            left: _type == TransactionType.debit ? 0 : null,
-            right: _type == TransactionType.credit ? 0 : null,
-            top: 4,
-            bottom: 4,
-            width: (MediaQuery.of(context).size.width - 40) / 2,
-            child: Container(
-              decoration: BoxDecoration(
-                color: _type == TransactionType.debit
-                    ? AppTheme.primary
-                    : AppTheme.secondary,
-                borderRadius: BorderRadius.circular(8),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _type = TransactionType.debit);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: isExpense ? AppTheme.expense : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+                  boxShadow: isExpense
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.expense.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.arrow_down,
+                      size: 15,
+                      color: isExpense
+                          ? Colors.white
+                          : AppTheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Expense',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: isExpense
+                            ? Colors.white
+                            : AppTheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _type = TransactionType.debit),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'Expense',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.05,
-                        color: _type == TransactionType.debit
-                            ? AppTheme.onPrimary
-                            : AppTheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _type = TransactionType.credit);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                decoration: BoxDecoration(
+                  color: !isExpense ? AppTheme.income : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+                  boxShadow: !isExpense
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.income.withValues(alpha: 0.25),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
                 ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _type = TransactionType.credit),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      CupertinoIcons.arrow_up,
+                      size: 15,
+                      color: !isExpense
+                          ? Colors.white
+                          : AppTheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
                       'Income',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.05,
-                        color: _type == TransactionType.credit
-                            ? AppTheme.onPrimary
+                        color: !isExpense
+                            ? Colors.white
                             : AppTheme.onSurfaceVariant,
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -288,66 +294,81 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildAmountCard(CurrencyNotifier currencyNotifier) {
+    final isExpense = _type == TransactionType.debit;
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.outlineVariant, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.iosCardDecoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Amount',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.05,
-              color: AppTheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 8),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'NPR',
-                style: GoogleFonts.manrope(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
+                'AMOUNT',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
                   color: AppTheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.mint,
+                  borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+                ),
+                child: Text(
+                  CurrencyHelper.currency,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                CurrencyHelper.symbol,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: TextFormField(
                   controller: _amountController,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  autofocus: true,
+                  autofocus: !_isEditing,
                   style: GoogleFonts.jetBrainsMono(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.primary,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w700,
+                    color: isExpense ? AppTheme.expense : AppTheme.income,
                   ),
                   decoration: InputDecoration(
                     hintText: '0.00',
                     hintStyle: GoogleFonts.jetBrainsMono(
-                      fontSize: 48,
+                      fontSize: 38,
                       fontWeight: FontWeight.w500,
-                      color: AppTheme.surfaceVariant,
+                      color: AppTheme.outlineVariant,
                     ),
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
                     contentPadding: EdgeInsets.zero,
                   ),
                   validator: (v) {
@@ -367,7 +388,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  Widget _buildCategorySection() {
+  Widget _buildCategoryGrid() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -375,28 +396,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Select Category',
-              style: GoogleFonts.inter(
-                fontSize: 12,
+              'SELECT CATEGORY',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.05,
+                letterSpacing: 0.8,
                 color: AppTheme.onSurfaceVariant,
               ),
             ),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                'View All',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.secondary,
-                ),
+            Text(
+              _category,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
               ),
             ),
           ],
@@ -407,62 +420,70 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 4,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 0.85,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 0.92,
           ),
           itemCount: _categories.length,
           itemBuilder: (context, index) {
             final (catName, icon) = _categories[index];
             final isSelected = _category == catName;
             return GestureDetector(
-              onTap: () => setState(() => _category = catName),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _category = catName);
+              },
+              behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(8),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.secondaryContainer.withValues(alpha: 0.2)
-                      : AppTheme.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(8),
+                  color: isSelected ? AppTheme.mint : Colors.white,
+                  borderRadius: BorderRadius.circular(AppTheme.squircleRadius),
                   border: Border.all(
                     color: isSelected
-                        ? AppTheme.secondary
+                        ? AppTheme.primary
                         : AppTheme.outlineVariant,
-                    width: isSelected ? 2 : 1,
+                    width: isSelected ? 1.5 : 0.8,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppTheme.secondary
-                            : AppTheme.surfaceContainer,
+                            ? AppTheme.primary
+                            : AppTheme.surfaceContainerLow,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         icon,
-                        size: 24,
-                        color: isSelected
-                            ? AppTheme.onSecondary
-                            : AppTheme.onSurfaceVariant,
+                        size: 18,
+                        color: isSelected ? Colors.white : AppTheme.primaryDark,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       catName,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
                         fontWeight: isSelected
                             ? FontWeight.w700
-                            : FontWeight.w400,
+                            : FontWeight.w500,
                         color: isSelected
-                            ? AppTheme.secondary
-                            : AppTheme.onSurfaceVariant,
+                            ? AppTheme.primaryDark
+                            : AppTheme.onSurface,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 1,
@@ -478,227 +499,205 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  Widget _buildDateAccountGrid() {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.outlineVariant, width: 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'DATE',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.05,
-                      color: AppTheme.onSurfaceVariant,
-                    ),
+  Widget _buildIosGroupedMetadataSection() {
+    return Container(
+      decoration: AppTheme.iosCardDecoration,
+      child: Column(
+        children: [
+          // Date Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: AppTheme.mint,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  child: const Icon(
+                    CupertinoIcons.calendar,
+                    size: 16,
+                    color: AppTheme.primaryDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      HapticFeedback.selectionClick();
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _date,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now().add(const Duration(days: 1)),
+                      );
+                      if (picked != null) setState(() => _date = picked);
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GestureDetector(
-                          onTap: () => setState(() => _isBS = true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            height: 20,
-                            decoration: BoxDecoration(
-                              color: _isBS
-                                  ? AppTheme.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'BS',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: _isBS
-                                      ? AppTheme.onPrimary
-                                      : AppTheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
+                        Text(
+                          'DATE',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: AppTheme.onSurfaceVariant,
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => setState(() => _isBS = false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            height: 20,
-                            decoration: BoxDecoration(
-                              color: !_isBS
-                                  ? AppTheme.primary
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'AD',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: !_isBS
-                                      ? AppTheme.onPrimary
-                                      : AppTheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat('EEEE, MMM dd, yyyy').format(_date),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.onSurface,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _date,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now().add(const Duration(days: 1)),
-                  );
-                  if (picked != null) setState(() => _date = picked);
-                },
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_month,
-                      size: 20,
-                      color: AppTheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        DateFormat('MMM dd, yyyy').format(_date),
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
+                ),
+              ],
+            ),
+          ),
+          const Divider(
+            height: 0.8,
+            indent: 52,
+            color: AppTheme.outlineVariant,
+          ),
+
+          // Account / Bank Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: AppTheme.mint,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.creditcard,
+                    size: 16,
+                    color: AppTheme.primaryDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ACCOUNT / BANK',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      TextField(
+                        controller: _bankController,
+                        decoration: InputDecoration(
+                          hintText: 'e.g. Nabil Bank, Cash, eSewa',
+                          hintStyle: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            color: AppTheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                           color: AppTheme.onSurface,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        // Account Section - matching Stitch design button-style layout
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.outlineVariant, width: 1),
+          const Divider(
+            height: 0.8,
+            indent: 52,
+            color: AppTheme.outlineVariant,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'ACCOUNT',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.05,
-                  color: AppTheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.account_balance_wallet,
-                    size: 20,
-                    color: AppTheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _bankController,
-                      decoration: InputDecoration(
-                        hintText: 'Nabil Bank',
-                        hintStyle: GoogleFonts.inter(
-                          fontSize: 16,
-                          color: AppTheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 2),
-                      ),
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        color: AppTheme.onSurface,
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 20,
-                    color: AppTheme.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildNoteField() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.outlineVariant, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Note (Optional)',
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.05,
-              color: AppTheme.onSurfaceVariant,
+          // Notes Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: AppTheme.mint,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.pencil,
+                    size: 16,
+                    color: AppTheme.primaryDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'NOTE (OPTIONAL)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      TextField(
+                        controller: _noteController,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'Add an optional note...',
+                          hintStyle: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            color: AppTheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _noteController,
-            maxLines: 2,
-            decoration: InputDecoration(
-              hintText: 'Add a note about this transaction...',
-              hintStyle: GoogleFonts.inter(
-                fontSize: 16,
-                color: AppTheme.outlineVariant,
-              ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-              isDense: true,
-            ),
-            style: GoogleFonts.inter(fontSize: 16, color: AppTheme.onSurface),
           ),
         ],
       ),
@@ -706,6 +705,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _saveTransaction() {
+    HapticFeedback.lightImpact();
     if (!_formKey.currentState!.validate()) return;
 
     final inputAmount = double.parse(_amountController.text);

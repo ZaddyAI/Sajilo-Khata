@@ -12,6 +12,12 @@ import 'data/datasources/local/hive_datasource.dart';
 import 'domain/repositories/i_sync_repository.dart';
 import 'presentation/bloc_providers.dart';
 import 'presentation/repository_providers.dart';
+import 'presentation/bloc/auth/auth_bloc.dart';
+import 'presentation/bloc/auth/auth_state.dart';
+import 'presentation/bloc/goal/goal_bloc.dart';
+import 'presentation/bloc/goal/goal_event.dart';
+import 'presentation/bloc/transaction/transaction_bloc.dart';
+import 'presentation/bloc/transaction/transaction_event.dart';
 import 'presentation/routes/app_router.dart';
 import 'firebase_options.dart';
 
@@ -77,23 +83,33 @@ class _SajiloKhataAppState extends State<SajiloKhataApp> {
       providers: repoProviders(widget.hive),
       child: MultiBlocProvider(
         providers: blocProviders,
-        child: ChangeNotifierProvider(
-          create: (_) =>
-              CurrencyNotifier()..setCurrency(CurrencyHelper.currency),
-          child: MaterialApp(
-            key: _appKey,
-            navigatorKey: _navigatorKey,
-            title: 'Sajilo Khata',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.light,
-            debugShowCheckedModeBanner: false,
-            initialRoute: '/',
-            onGenerateRoute: AppRouter.generateRoute,
-            builder: (context, child) {
-              context.read<SyncRepository>().init();
-              return child!;
-            },
+        // Re-load locally stored data whenever the session changes
+        // (guest login, sign-in, sign-out) so the UI never keeps stale data.
+        child: BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthAuthenticated || state is AuthUnauthenticated) {
+              context.read<TransactionBloc>().add(TransactionLoadRequested());
+              context.read<GoalBloc>().add(GoalLoadRequested());
+            }
+          },
+          child: ChangeNotifierProvider(
+            create: (_) =>
+                CurrencyNotifier()..setCurrency(CurrencyHelper.currency),
+            child: MaterialApp(
+              key: _appKey,
+              navigatorKey: _navigatorKey,
+              title: 'Sajilo Khata',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeMode.light,
+              debugShowCheckedModeBanner: false,
+              initialRoute: '/',
+              onGenerateRoute: AppRouter.generateRoute,
+              builder: (context, child) {
+                context.read<SyncRepository>().init();
+                return child!;
+              },
+            ),
           ),
         ),
       ),

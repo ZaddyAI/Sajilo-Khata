@@ -59,6 +59,7 @@ dependencies:
   # SMS reading
   android_sms_reader: ^0.0.6
   provider: ^6.1.5+1
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
@@ -71,7 +72,13 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: "launcher_icon"
+  min_sdk_android: 21
+  adaptive_icon_background: "#F4F6F2"
+  adaptive_icon_foreground: "assets/sajilo_khata_logo.png"
+  adaptive_icon_foreground_inset: 16
   ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#F4F6F2"
   image_path: "assets/sajilo_khata_logo.png"
 
 flutter:
@@ -80,34 +87,35 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/sajilo_khata_logo.png
-    - assets/redpixellabs.png
     - assets/fonts/
 
   fonts:
-    - family: Manrope
+    # Theme font (theme_template.md).
+    # IMPORTANT: GoogleFonts.<family>() resolves bundled fonts by looking for an
+    # asset whose path ENDS WITH the Google Fonts API file name, which has no
+    # spaces - e.g. "PlusJakartaSans-Bold.ttf" / "JetBrainsMono-Bold.ttf"
+    # (runtime fetching is disabled in main.dart, so these must exist).
+    # The Flutter font family itself keeps its display name ("Plus Jakarta Sans").
+    - family: Plus Jakarta Sans
       fonts:
-        - asset: assets/fonts/Manrope-Regular.ttf
-        - asset: assets/fonts/Manrope-Medium.ttf
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Manrope-SemiBold.ttf
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
           weight: 600
-        - asset: assets/fonts/Manrope-Bold.ttf
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Manrope-ExtraBold.ttf
+        - asset: assets/fonts/PlusJakartaSans-ExtraBold.ttf
           weight: 800
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
-        - asset: assets/fonts/Inter-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
-          weight: 700
-    - family: JetBrainsMono
+    # Monospace numerals (AppTheme.dataMono / GoogleFonts.jetBrainsMono)
+    - family: JetBrains Mono
       fonts:
         - asset: assets/fonts/JetBrainsMono-Regular.ttf
         - asset: assets/fonts/JetBrainsMono-Medium.ttf
           weight: 500
+        - asset: assets/fonts/JetBrainsMono-SemiBold.ttf
+          weight: 600
         - asset: assets/fonts/JetBrainsMono-Bold.ttf
           weight: 700
+        - asset: assets/fonts/JetBrainsMono-ExtraBold.ttf
+          weight: 800

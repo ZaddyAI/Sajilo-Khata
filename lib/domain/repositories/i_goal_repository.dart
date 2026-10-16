@@ -8,8 +8,18 @@ abstract class GoalRepository {
   Future<Result<void>> updateGoal(Goal goal);
   Future<Result<void>> deleteGoal(String id);
   Future<Result<void>> contributeToGoal(String goalId, double amount);
-  Future<Result<void>> removeContribution(String goalId, String contributionId, double amount);
-  Future<Result<void>> editContribution(String goalId, String contributionId, double oldAmount, double newAmount);
+  Future<Result<void>> removeContribution(
+    String goalId,
+    String contributionId,
+    double amount,
+  );
+  Future<Result<void>> editContribution(
+    String goalId,
+    String contributionId,
+    double oldAmount,
+    double newAmount, {
+    DateTime? newDate,
+  });
   List<Goal> getLocalGoals();
   void saveLocalGoal(Goal goal, {bool fromFirestore = false});
   void saveAllLocalGoals(List<Goal> goals);

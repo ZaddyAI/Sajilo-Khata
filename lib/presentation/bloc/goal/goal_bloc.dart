@@ -43,25 +43,38 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     add(GoalLoadRequested());
   }
 
+  /// Guards against stacking multiple remote observers when
+  /// `GoalLoadRequested` is dispatched repeatedly (sign-in/sign-out, refresh).
+  bool _isObservingRemote = false;
+
   Future<void> _onLoadRequested(
     GoalLoadRequested event,
     Emitter<GoalState> emit,
   ) async {
-    emit(GoalLoading());
+    if (state is! GoalLoaded) emit(GoalLoading());
+    emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
 
-    final localGoals = getGoals.getLocal();
-    emit(GoalLoaded(goals: localGoals, isLocalOnly: true));
+    if (_isObservingRemote) return;
 
-    await emit.forEach(
-      getGoals.observe(),
-      onData: (firestoreGoals) {
-        goalRepository.saveAllLocalGoals(firestoreGoals);
-        return GoalLoaded(goals: firestoreGoals);
-      },
-      onError: (error, stack) {
-        return GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true);
-      },
-    );
+    _isObservingRemote = true;
+    try {
+      await emit.forEach(
+        getGoals.observe(),
+        onData: (firestoreGoals) {
+          if (firestoreGoals.isEmpty) {
+            return GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true);
+          }
+          goalRepository.saveAllLocalGoals(firestoreGoals);
+          return GoalLoaded(goals: firestoreGoals);
+        },
+        onError: (error, stack) {
+          _isObservingRemote = false;
+          return GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true);
+        },
+      );
+    } finally {
+      _isObservingRemote = false;
+    }
   }
 
   Future<void> _onAddRequested(
@@ -104,6 +117,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       event.contributionId,
       event.oldAmount,
       event.newAmount,
+      newDate: event.newDate,
     );
     emit(GoalLoaded(goals: getGoals.getLocal(), isLocalOnly: true));
   }

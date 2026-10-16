@@ -10,15 +10,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const DashboardScreen(),
-    const TransactionListScreen(),
-    const GoalsListScreen(),
-    const ProfileScreen(),
-  ];
+  late final List<Widget> _screens;
 
-  void _onTabTapped(int index) {
-    setState(() => _currentIndex = index);
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      DashboardScreen(onSwitchTab: onTabTapped),
+      const TransactionListScreen(),
+      const GoalsListScreen(),
+      const ProfileScreen(),
+    ];
+  }
+
+  void onTabTapped(int index) {
+    if (_currentIndex != index) {
+      HapticFeedback.lightImpact();
+      setState(() => _currentIndex = index);
+    }
   }
 
   @override
@@ -30,76 +39,141 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: AppTheme.background,
+        extendBody: true,
         body: IndexedStack(index: _currentIndex, children: _screens),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceContainerLowest,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            border: const Border(
-              top: BorderSide(color: AppTheme.outlineVariant, width: 1),
+        bottomNavigationBar: _buildIosFloatingDock(context),
+      ),
+    );
+  }
+
+  /// Floating Dock Island with 4 tabs:
+  /// - Tab 0: Cards / Dashboard
+  /// - Tab 1: Ledger / Transactions
+  /// - Tab 2: Targets / Goals
+  /// - Tab 3: Menu / Profile
+  /// Active tab has obsidian black circular pill with white icon.
+  Widget _buildIosFloatingDock(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+        22,
+        0,
+        22,
+        bottomPadding > 0 ? bottomPadding : 16,
+      ),
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                spreadRadius: 0,
-                offset: const Offset(0, -2),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(32),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.94),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  width: 1.2,
+                ),
               ),
-            ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // Tab 0: Cards / Dashboard
+                  _DockIconButton(
+                    icon: _currentIndex == 0
+                        ? CupertinoIcons.creditcard_fill
+                        : CupertinoIcons.creditcard,
+                    isActive: _currentIndex == 0,
+                    onTap: () => onTabTapped(0),
+                  ),
+
+                  // Tab 1: Transfer / Ledger
+                  _DockIconButton(
+                    icon: CupertinoIcons.arrow_right_arrow_left,
+                    isActive: _currentIndex == 1,
+                    onTap: () => onTabTapped(1),
+                  ),
+
+                  // Tab 2: Targets / Goals
+                  _DockIconButton(
+                    icon: _currentIndex == 2
+                        ? CupertinoIcons.flag_fill
+                        : CupertinoIcons.flag,
+                    isActive: _currentIndex == 2,
+                    onTap: () => onTabTapped(2),
+                  ),
+
+                  // Tab 3: Menu / Profile
+                  _DockIconButton(
+                    icon: _currentIndex == 3
+                        ? CupertinoIcons.square_grid_2x2_fill
+                        : CupertinoIcons.square_grid_2x2,
+                    isActive: _currentIndex == 3,
+                    onTap: () => onTabTapped(3),
+                  ),
+                ],
+              ),
+            ),
           ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                ),
-                child: BottomNavigationBar(
-                  currentIndex: _currentIndex,
-                  onTap: _onTabTapped,
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  selectedItemColor: AppTheme.secondary,
-                  unselectedItemColor: AppTheme.onSurfaceVariant,
-                  selectedFontSize: 11,
-                  unselectedFontSize: 11,
-                  selectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Inter',
-                    fontSize: 11,
+        ),
+      ),
+    );
+  }
+}
+
+class _DockIconButton extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _DockIconButton({
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF101510) : Colors.transparent,
+          shape: BoxShape.circle,
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'Inter',
-                    fontSize: 11,
-                  ),
-                  items: const [
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home_outlined),
-                      activeIcon: Icon(Icons.home_rounded),
-                      label: 'Home',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.receipt_long_outlined),
-                      activeIcon: Icon(Icons.receipt_long_rounded),
-                      label: 'Ledger',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.savings_outlined),
-                      activeIcon: Icon(Icons.savings_rounded),
-                      label: 'Goals',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person_outline_rounded),
-                      activeIcon: Icon(Icons.person_rounded),
-                      label: 'Account',
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Icon(
+            icon,
+            size: isActive ? 20 : 22,
+            color: isActive ? Colors.white : const Color(0xFF8A9188),
           ),
         ),
       ),
