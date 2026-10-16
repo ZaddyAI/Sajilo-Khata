@@ -47,16 +47,24 @@ class GoalEditContributionRequested extends GoalEvent {
   final String contributionId;
   final double oldAmount;
   final double newAmount;
+  final DateTime? newDate;
 
   GoalEditContributionRequested({
     required this.goalId,
     required this.contributionId,
     required this.oldAmount,
     required this.newAmount,
+    this.newDate,
   });
 
   @override
-  List<Object?> get props => [goalId, contributionId, oldAmount, newAmount];
+  List<Object?> get props => [
+    goalId,
+    contributionId,
+    oldAmount,
+    newAmount,
+    newDate,
+  ];
 }
 
 class GoalDeleteRequested extends GoalEvent {

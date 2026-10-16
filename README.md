@@ -2,11 +2,9 @@
 
 Nepal SMS Expense Tracker & Savings Goals
 
-Technical Documentation • v1.0
+Technical Documentation • v2.4
 
-Built with Flutter + Firebase • Supports all major Nepal banks & wallets • BS/AD dual calendar
-
-A product by **RedPixel Labs**
+Built with Flutter + Firebase • Supports all major Nepal banks & wallets
 
 ---
 
@@ -174,7 +172,7 @@ The project follows Clean Architecture with three layers (presentation, domain, 
 | **Path**                                 | **Purpose**                                                   |
 | ---------------------------------------- | ------------------------------------------------------------- |
 | core/constants/app_theme.dart            | Light & dark MaterialTheme definitions                        |
-| core/constants/app_constants.dart        | App name, company name (RedPixel Labs)                        |
+| core/constants/app_constants.dart        | App constants, URLs, and currencies                           |
 | core/di/service_locator.dart             | Legacy singleton DI (migration target)                        |
 | core/network/network_info.dart           | Connectivity check abstraction                                |
 | core/services/firebase_service.dart      | Legacy Firestore CRUD (used by SMS parser)                    |
@@ -426,6 +424,4 @@ MultiRepositoryProvider(
 )
 ```
 
-This project demonstrates: Clean Architecture, Flutter BLoC patterns, Firebase integration, offline-first data flow, SMS parsing, chart rendering, push notifications, and cross-device sync — all targeting a real market gap in Nepal.
-
-Built by **RedPixel Labs** • gambhirpoudel.com.np
+This project demonstrates: Clean Architecture, Flutter BLoC patterns, Firebase integration, offline-first data flow, SMS parsing, chart rendering, push notifications, and cross-device sync.

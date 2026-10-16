@@ -17,7 +17,7 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
   late DateTime _deadline;
   late String _emoji;
   late GoalStatus _status;
-  bool _showBS = true;
+  bool _showBS = false;
 
   @override
   void initState() {
@@ -57,256 +57,455 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surface,
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.onSurface),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Edit Goal',
-          style: GoogleFonts.manrope(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.primary,
-          ),
-        ),
-        backgroundColor: AppTheme.surface,
+        backgroundColor: AppTheme.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppTheme.outlineVariant),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.pop(context);
+          },
+          child: const Icon(
+            CupertinoIcons.chevron_back,
+            color: AppTheme.onSurface,
+            size: 22,
+          ),
+        ),
+        title: Text(
+          'Edit Goal',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.onSurface,
+            letterSpacing: -0.3,
+          ),
         ),
         actions: [
-          TextButton.icon(
-            onPressed: () => _confirmDelete(context),
-            icon: const Icon(
-              Icons.delete_outline_rounded,
-              size: 18,
-              color: AppTheme.error,
-            ),
-            label: Text(
-              'Delete',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.error,
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: CupertinoButton(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              minSize: 32,
+              color: AppTheme.primary,
+              borderRadius: BorderRadius.circular(20),
+              onPressed: _saveGoal,
+              child: Text(
+                'Save',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(height: 0.8, color: AppTheme.outlineVariant),
+        ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           children: [
             _buildEmojiSelector(),
             const SizedBox(height: 24),
-            _buildLabel('GOAL NAME'),
-            const SizedBox(height: 8),
+
+            // Inset Grouped Settings Box
             Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.outlineVariant, width: 1),
-              ),
-              child: TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  hintText: 'What are you saving for?',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 16,
-                    color: AppTheme.outline,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a goal name';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildLabel('TARGET AMOUNT'),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.outlineVariant, width: 1),
-              ),
-              child: TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primary,
-                ),
-                decoration: InputDecoration(
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.only(left: 14, right: 8),
-                    child: Text(
-                      CurrencyHelper.currency,
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primary,
-                      ),
-                    ),
-                  ),
-                  prefixIconConstraints: const BoxConstraints(
-                    minWidth: 0,
-                    minHeight: 0,
-                  ),
-                  hintText: '0',
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a target amount';
-                  }
-                  final amount = double.tryParse(value);
-                  if (amount == null || amount <= 0) {
-                    return 'Please enter a valid amount';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildDeadlineSection(),
-            const SizedBox(height: 20),
-            _buildLabel('GOAL STATUS'),
-            const SizedBox(height: 8),
-            _buildStatusSelector(),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.only(top: 24),
-              decoration: const BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: AppTheme.outlineVariant, width: 1),
-                ),
-              ),
+              decoration: AppTheme.iosCardDecoration,
               child: Column(
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _confirmDelete(context),
-                      icon: const Icon(
-                        Icons.delete_forever_rounded,
-                        color: AppTheme.error,
-                      ),
-                      label: Text(
-                        'Delete This Goal',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.error,
+                  // Goal Name
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.flag,
+                            size: 18,
+                            color: AppTheme.primary,
+                          ),
                         ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppTheme.error, width: 1),
-                        backgroundColor: AppTheme.errorContainer.withValues(
-                          alpha: 0.1,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _nameController,
+                            textCapitalization: TextCapitalization.words,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.onSurface,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'What are you saving for?',
+                              hintStyle: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                color: AppTheme.onSurfaceVariant.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a goal name';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Deleting this goal will also archive its saving history. This action is irreversible.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: AppTheme.onSurfaceVariant,
+                  const Divider(
+                    height: 1,
+                    indent: 64,
+                    color: AppTheme.outlineVariant,
+                  ),
+
+                  // Target Amount
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.mint.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            CurrencyHelper.currency,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _amountController,
+                            keyboardType: TextInputType.number,
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.onSurface,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '0',
+                              hintStyle: GoogleFonts.jetBrainsMono(
+                                fontSize: 14,
+                                color: AppTheme.onSurfaceVariant.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a target amount';
+                              }
+                              final amount = double.tryParse(value);
+                              if (amount == null || amount <= 0) {
+                                return 'Please enter a valid amount';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(
+                    height: 1,
+                    indent: 64,
+                    color: AppTheme.outlineVariant,
+                  ),
+
+                  // Deadline
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.calendar,
+                            size: 18,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () async {
+                              HapticFeedback.selectionClick();
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: _deadline,
+                                firstDate: DateTime.now().add(
+                                  const Duration(days: 1),
+                                ),
+                                lastDate: DateTime.now().add(
+                                  const Duration(days: 365 * 10),
+                                ),
+                              );
+                              if (picked != null) {
+                                setState(() => _deadline = picked);
+                              }
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'DEADLINE',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.6,
+                                    color: AppTheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  DateFormat('MMMM dd, yyyy').format(_deadline),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // AD/BS toggle
+                        Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceContainerLow,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _showBS = false);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: !_showBS
+                                        ? AppTheme.primary
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    'AD',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: !_showBS
+                                          ? Colors.white
+                                          : AppTheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _showBS = true);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _showBS
+                                        ? AppTheme.primary
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    'BS',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: _showBS
+                                          ? Colors.white
+                                          : AppTheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
+
+            const SizedBox(height: 24),
+
+            // Status Section
+            Text(
+              'GOAL STATUS',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+                color: AppTheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildStatusSelector(),
+
+            const SizedBox(height: 32),
+
+            // Inset Grouped Delete Cell
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppTheme.outlineVariant, width: 0.8),
+                boxShadow: AppTheme.cardShadow,
+              ),
+              child: CupertinoButton(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                onPressed: () => _confirmDelete(context),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      CupertinoIcons.trash,
+                      size: 18,
+                      color: AppTheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Delete Financial Goal',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Deleting this goal will archive its contributions. This cannot be undone.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: AppTheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomActionBar(),
     );
   }
 
   Widget _buildEmojiSelector() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.outlineVariant, width: 1),
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.iosCardDecoration,
       child: Column(
         children: [
           GestureDetector(
-            onTap: _showEmojiPicker,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _showEmojiPicker();
+            },
             child: Stack(
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 96,
-                  height: 96,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primaryFixed,
-                    shape: BoxShape.circle,
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.2),
+                      width: 1.5,
+                    ),
                   ),
                   child: Center(
-                    child: Text(_emoji, style: const TextStyle(fontSize: 48)),
+                    child: Text(_emoji, style: const TextStyle(fontSize: 44)),
                   ),
                 ),
                 Positioned(
-                  bottom: 0,
-                  right: 0,
+                  bottom: -2,
+                  right: -2,
                   child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
                       color: AppTheme.primary,
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: const Icon(
-                      Icons.edit,
-                      color: AppTheme.onPrimary,
-                      size: 16,
+                      CupertinoIcons.pencil,
+                      color: Colors.white,
+                      size: 14,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
-            'Tap to change icon',
-            style: GoogleFonts.inter(
+            'Tap icon to change',
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
-              fontWeight: FontWeight.w700,
               color: AppTheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -320,23 +519,26 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
               final emoji = _emojis[index];
               final isSelected = emoji == _emoji;
               return GestureDetector(
-                onTap: () => setState(() => _emoji = emoji),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _emoji = emoji);
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppTheme.primary.withValues(alpha: 0.08)
+                        ? AppTheme.mint.withValues(alpha: 0.3)
                         : AppTheme.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected
                           ? AppTheme.primary
                           : AppTheme.outlineVariant,
-                      width: isSelected ? 2 : 1,
+                      width: isSelected ? 1.8 : 0.8,
                     ),
                   ),
                   child: Center(
-                    child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                    child: Text(emoji, style: const TextStyle(fontSize: 22)),
                   ),
                 ),
               );
@@ -352,29 +554,46 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
+      showDragHandle: false,
+      sheetAnimationStyle: appSheetAnimationStyle,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) => Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Choose Goal Icon',
-                  style: GoogleFonts.manrope(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
-                  'Type any emoji from your keyboard or pick one below',
-                  style: GoogleFonts.inter(
+                  'Type or select any emoji for your target',
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     color: AppTheme.onSurfaceVariant,
                   ),
@@ -382,20 +601,19 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
                 const SizedBox(height: 16),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceContainerLowest,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.outlineVariant, width: 1),
+                    color: AppTheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.outlineVariant),
                   ),
                   child: TextField(
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 48),
+                    style: const TextStyle(fontSize: 44),
                     controller: emojiController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: '\u{1F3AF}',
-                      hintStyle: const TextStyle(fontSize: 48),
                       counterText: '',
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
                     ),
                     onChanged: (value) {
                       if (value.isNotEmpty) {
@@ -405,152 +623,78 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 Text(
-                  'Quick picks',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  'Popular Choices',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.6,
                     color: AppTheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: [
-                    '\u{1F3AF}', '\u{1F4BB}', '\u{1F4F1}', '\u{1F3E0}',
-                    '\u{1F697}', '\u{2708}\u{FE0F}', '\u{1F48D}', '\u{1F393}',
-                    '\u{1F3E5}', '\u{1F381}', '\u{1F4B0}', '\u{1F3D7}\u{FE0F}',
-                    '\u{1F6B2}', '\u{1F3A8}', '\u{1F3C6}', '\u{2B50}',
-                    '\u{1F4DA}', '\u{1F6CD}\u{FE0F}', '\u{1F3E6}', '\u{1F4B3}',
-                  ].map((emoji) => GestureDetector(
-                    onTap: () {
-                      setState(() => _emoji = emoji);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _emoji == emoji
-                            ? AppTheme.primary.withValues(alpha: 0.1)
-                            : AppTheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _emoji == emoji
-                              ? AppTheme.primary
-                              : AppTheme.outlineVariant,
-                          width: _emoji == emoji ? 2 : 1,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(emoji, style: const TextStyle(fontSize: 22)),
-                      ),
-                    ),
-                  )).toList(),
+                  children:
+                      [
+                            '\u{1F3AF}',
+                            '\u{1F4BB}',
+                            '\u{1F4F1}',
+                            '\u{1F3E0}',
+                            '\u{1F697}',
+                            '\u{2708}\u{FE0F}',
+                            '\u{1F48D}',
+                            '\u{1F393}',
+                            '\u{1F3E5}',
+                            '\u{1F381}',
+                            '\u{1F4B0}',
+                            '\u{1F3D7}\u{FE0F}',
+                            '\u{1F6B2}',
+                            '\u{1F3A8}',
+                            '\u{1F3C6}',
+                            '\u{2B50}',
+                            '\u{1F4DA}',
+                            '\u{1F6CD}\u{FE0F}',
+                            '\u{1F3E6}',
+                            '\u{1F4B3}',
+                          ]
+                          .map(
+                            (emoji) => GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _emoji = emoji);
+                                Navigator.pop(context);
+                              },
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: _emoji == emoji
+                                      ? AppTheme.mint.withValues(alpha: 0.3)
+                                      : AppTheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: _emoji == emoji
+                                        ? AppTheme.primary
+                                        : AppTheme.outlineVariant,
+                                    width: _emoji == emoji ? 1.8 : 0.8,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    emoji,
+                                    style: const TextStyle(fontSize: 22),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                 ),
                 const SizedBox(height: 24),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeadlineSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildLabel('DEADLINE'),
-            Container(
-              height: 28,
-              decoration: BoxDecoration(
-                color: AppTheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  _buildToggleBtn('BS', _showBS, () {
-                    setState(() => _showBS = true);
-                  }),
-                  _buildToggleBtn('AD', !_showBS, () {
-                    setState(() => _showBS = false);
-                  }),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: _deadline,
-              firstDate: DateTime.now().add(const Duration(days: 1)),
-              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-            );
-            if (picked != null) setState(() => _deadline = picked);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: AppTheme.surfaceContainerLowest,
-              border: Border.all(color: AppTheme.outlineVariant, width: 1),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    DateFormat('MMMM dd, yyyy').format(_deadline),
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      color: AppTheme.onSurface,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.calendar_month,
-                  color: AppTheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Approximately ${_deadline.difference(DateTime.now()).inDays ~/ 30} months left to save.',
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            color: AppTheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToggleBtn(String label, bool isActive, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: isActive ? AppTheme.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: isActive ? AppTheme.onPrimary : AppTheme.onSurfaceVariant,
             ),
           ),
         ),
@@ -563,41 +707,44 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: () => setState(() => _status = GoalStatus.onTrack),
-            child: Container(
-              height: 52,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _status = GoalStatus.onTrack);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 48,
               decoration: BoxDecoration(
                 color: _status == GoalStatus.onTrack
-                    ? AppTheme.secondary.withValues(alpha: 0.1)
-                    : AppTheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
+                    ? AppTheme.mint.withValues(alpha: 0.25)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: _status == GoalStatus.onTrack
-                      ? AppTheme.secondary
+                      ? AppTheme.primary
                       : AppTheme.outlineVariant,
-                  width: _status == GoalStatus.onTrack ? 2 : 1,
+                  width: _status == GoalStatus.onTrack ? 1.8 : 0.8,
                 ),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.check_circle_rounded,
+                    CupertinoIcons.checkmark_alt_circle_fill,
                     size: 18,
                     color: _status == GoalStatus.onTrack
-                        ? AppTheme.secondary
+                        ? AppTheme.primary
                         : AppTheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'On Track',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: _status == GoalStatus.onTrack
-                          ? FontWeight.w700
-                          : FontWeight.w500,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                       color: _status == GoalStatus.onTrack
-                          ? AppTheme.secondary
+                          ? AppTheme.primary
                           : AppTheme.onSurfaceVariant,
                     ),
                   ),
@@ -609,41 +756,44 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: GestureDetector(
-            onTap: () => setState(() => _status = GoalStatus.behind),
-            child: Container(
-              height: 52,
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _status = GoalStatus.behind);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 48,
               decoration: BoxDecoration(
                 color: _status == GoalStatus.behind
-                    ? AppTheme.tertiaryFixed.withValues(alpha: 0.3)
-                    : AppTheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(12),
+                    ? AppTheme.coral.withValues(alpha: 0.15)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: _status == GoalStatus.behind
-                      ? AppTheme.onTertiaryContainer
+                      ? AppTheme.coral
                       : AppTheme.outlineVariant,
-                  width: _status == GoalStatus.behind ? 2 : 1,
+                  width: _status == GoalStatus.behind ? 1.8 : 0.8,
                 ),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.error_rounded,
+                    CupertinoIcons.exclamationmark_circle_fill,
                     size: 18,
                     color: _status == GoalStatus.behind
-                        ? AppTheme.onTertiaryContainer
+                        ? AppTheme.coral
                         : AppTheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Off Track',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: _status == GoalStatus.behind
-                          ? FontWeight.w700
-                          : FontWeight.w500,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                       color: _status == GoalStatus.behind
-                          ? AppTheme.onTertiaryContainer
+                          ? AppTheme.coral
                           : AppTheme.onSurfaceVariant,
                     ),
                   ),
@@ -656,50 +806,8 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.05,
-        color: AppTheme.onSurfaceVariant,
-      ),
-    );
-  }
-
-  Widget _buildBottomActionBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        border: Border(top: BorderSide(color: AppTheme.outlineVariant, width: 1)),
-      ),
-      child: SizedBox(
-        height: 54,
-        child: ElevatedButton.icon(
-          onPressed: _saveGoal,
-          icon: const Icon(Icons.save_rounded, size: 20),
-          label: Text(
-            'Save Changes',
-            style: GoogleFonts.manrope(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primary,
-            foregroundColor: AppTheme.onPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _saveGoal() {
+    HapticFeedback.lightImpact();
     if (!_formKey.currentState!.validate()) return;
 
     final inputAmount = double.parse(_amountController.text);
@@ -717,28 +825,34 @@ class _EditGoalScreenState extends State<EditGoalScreen> {
   }
 
   void _confirmDelete(BuildContext context) {
-    showDialog(
+    HapticFeedback.mediumImpact();
+    showSmoothDialog(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Delete Goal'),
+        return CupertinoAlertDialog(
+          title: Text(
+            'Delete Goal?',
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          ),
           content: Text(
-            'Are you sure you want to delete "${widget.goal.name}"?',
+            'Are you sure you want to delete "${widget.goal.name}"? This action cannot be undone.',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13),
           ),
           actions: [
-            TextButton(
+            CupertinoDialogAction(
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
-            TextButton(
+            CupertinoDialogAction(
+              isDestructiveAction: true,
               onPressed: () {
+                HapticFeedback.lightImpact();
                 context.read<GoalBloc>().add(
                   GoalDeleteRequested(id: widget.goal.id),
                 );
                 Navigator.pop(dialogContext);
                 Navigator.pop(context);
               },
-              style: TextButton.styleFrom(foregroundColor: AppTheme.error),
               child: const Text('Delete'),
             ),
           ],

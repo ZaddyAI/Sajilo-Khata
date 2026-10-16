@@ -31,28 +31,50 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
     add(TransactionLoadRequested());
   }
 
+  /// Whether a remote (Firestore) observer is currently running.
+  /// Guards against stacking multiple `emit.forEach` subscriptions when
+  /// `TransactionLoadRequested` is dispatched repeatedly (pull-to-refresh,
+  /// SMS import, sign-in/sign-out).
+  bool _isObservingRemote = false;
+
   Future<void> _onLoadRequested(
     TransactionLoadRequested event,
     Emitter<TransactionState> emit,
   ) async {
-    emit(TransactionLoading());
+    // Always surface the locally stored transactions immediately so the UI
+    // updates instantly (guest mode, offline, or right after an SMS import).
+    if (state is! TransactionLoaded) emit(TransactionLoading());
+    emit(TransactionLoaded(transactions: getTransactions.getLocal(), isLocalOnly: true));
 
-    final localTxs = getTransactions.getLocal();
-    emit(TransactionLoaded(transactions: localTxs, isLocalOnly: true));
+    if (_isObservingRemote) return;
 
-    await emit.forEach(
-      getTransactions.observe(),
-      onData: (firestoreTxs) {
-        transactionRepository.saveAllLocalTransactions(firestoreTxs);
-        return TransactionLoaded(transactions: firestoreTxs);
-      },
-      onError: (error, stack) {
-        return TransactionLoaded(
-          transactions: getTransactions.getLocal(),
-          isLocalOnly: true,
-        );
-      },
-    );
+    _isObservingRemote = true;
+    try {
+      await emit.forEach(
+        getTransactions.observe(),
+        onData: (firestoreTxs) {
+          if (firestoreTxs.isEmpty) {
+            // Remote empty/unreadable: keep whatever is stored locally instead
+            // of blanking the ledger (guest mode, signed out, parse errors).
+            return TransactionLoaded(
+              transactions: getTransactions.getLocal(),
+              isLocalOnly: true,
+            );
+          }
+          transactionRepository.saveAllLocalTransactions(firestoreTxs);
+          return TransactionLoaded(transactions: firestoreTxs);
+        },
+        onError: (error, stack) {
+          _isObservingRemote = false;
+          return TransactionLoaded(
+            transactions: getTransactions.getLocal(),
+            isLocalOnly: true,
+          );
+        },
+      );
+    } finally {
+      _isObservingRemote = false;
+    }
   }
 
   Future<void> _onAddRequested(

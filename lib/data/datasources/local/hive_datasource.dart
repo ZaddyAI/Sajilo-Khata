@@ -99,6 +99,27 @@ class HiveDataSource {
     return TransactionModel.fromMap(Map<String, dynamic>.from(data), id);
   }
 
+  /// Local (guest-safe) duplicate check for SMS imports: same SMS-sourced
+  /// amount + note on the same calendar day already exists.
+  bool containsSmsTransaction(double amount, String note, DateTime date) {
+    for (final data in _txBox.values) {
+      try {
+        if (data['source'] != 'sms') continue;
+        final storedAmount = (data['amount'] as num?)?.toDouble();
+        if (storedAmount == null || storedAmount != amount) continue;
+        if ((data['note']?.toString() ?? '') != note) continue;
+        final storedDate = DateTime.tryParse(data['dateAD']?.toString() ?? '');
+        if (storedDate == null) continue;
+        if (storedDate.year == date.year &&
+            storedDate.month == date.month &&
+            storedDate.day == date.day) {
+          return true;
+        }
+      } catch (_) {}
+    }
+    return false;
+  }
+
   // ── Goals ──
 
   void saveGoal(Goal goal, {bool fromFirestore = false}) {

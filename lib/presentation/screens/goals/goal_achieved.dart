@@ -20,9 +20,9 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     );
-    _scaleAnim = Tween<double>(begin: 0.5, end: 1.0).animate(
+    _scaleAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.elasticOut),
     );
     _fadeAnim = Tween<double>(
@@ -30,6 +30,7 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeIn));
     _animController.forward();
+    HapticFeedback.heavyImpact();
   }
 
   @override
@@ -41,44 +42,57 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
   @override
   Widget build(BuildContext context) {
     final timeTaken = widget.goal.deadlineAD.difference(widget.goal.createdAt);
-    final monthsTaken = (timeTaken.inDays / 30).ceil();
+    final monthsTaken = (timeTaken.inDays / 30).ceil().clamp(1, 120);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: Text(
-          'Sajilo Khata',
-          style: GoogleFonts.manrope(
-            fontSize: 20,
+          'Target Reached',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppTheme.primary,
+            color: AppTheme.onSurface,
+            letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: AppTheme.surfaceContainerLowest,
+        backgroundColor: AppTheme.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.pop(context);
+          },
+          child: const Icon(
+            CupertinoIcons.xmark,
+            color: AppTheme.onSurface,
+            size: 20,
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(height: 1, color: AppTheme.outlineVariant),
+          child: Container(height: 0.8, color: AppTheme.outlineVariant),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
         child: Column(
           children: [
             // Celebration Visual
             _buildCelebrationVisual(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             // Headline & Subheadline
             _buildHeadline(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            // Details Card (Bento-style layout)
+            // Details Inset Grouped Bento
             _buildDetailsCard(monthsTaken),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // Social Proof/Impact
+            // Social Proof pill
             _buildSocialProof(),
             const SizedBox(height: 32),
 
@@ -92,7 +106,7 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
 
   Widget _buildCelebrationVisual() {
     return SizedBox(
-      height: 200,
+      height: 180,
       child: Center(
         child: AnimatedBuilder(
           animation: _animController,
@@ -104,50 +118,55 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    // Main emoji container
+                    // Main emoji squircle container
                     Container(
-                      width: 130,
-                      height: 130,
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
-                        color: AppTheme.secondaryContainer,
-                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: AppTheme.primary.withValues(alpha: 0.2),
+                          width: 2,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.secondary.withValues(alpha: 0.2),
-                            blurRadius: 20,
-                            spreadRadius: 5,
+                            color: AppTheme.primary.withValues(alpha: 0.15),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
                       child: Center(
                         child: Text(
                           widget.goal.emoji,
-                          style: const TextStyle(fontSize: 64),
+                          style: const TextStyle(fontSize: 56),
                         ),
                       ),
                     ),
                     // Trophy badge
                     Positioned(
-                      bottom: -8,
-                      right: -8,
+                      bottom: -6,
+                      right: -6,
                       child: Container(
-                        width: 56,
-                        height: 56,
-                        decoration: const BoxDecoration(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
                           color: AppTheme.primary,
                           shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: const Icon(
-                          Icons.emoji_events_rounded,
-                          color: AppTheme.onPrimary,
-                          size: 28,
+                          CupertinoIcons.sparkles,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
                     ),
@@ -165,11 +184,12 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
     return Column(
       children: [
         Text(
-          'Congratulations!',
-          style: GoogleFonts.manrope(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.primary,
+          'Target Conquered!',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.6,
+            color: AppTheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
@@ -177,8 +197,8 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-            style: GoogleFonts.inter(
-              fontSize: 16,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
               color: AppTheme.onSurfaceVariant,
               height: 1.5,
             ),
@@ -192,12 +212,12 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
                   color: AppTheme.primary,
                 ),
               ),
-              const TextSpan(text: ' for your '),
+              const TextSpan(text: ' for your goal '),
               TextSpan(
                 text: widget.goal.name,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.primary,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.onSurface,
                 ),
               ),
               const TextSpan(text: '.'),
@@ -216,24 +236,24 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
             label: 'Total Saved',
             value:
                 '${CurrencyHelper.symbol}${CurrencyHelper.format(widget.goal.targetAmount)}',
-            valueColor: AppTheme.secondary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _DetailCard(
-            label: 'Target Amount',
-            value:
-                '${CurrencyHelper.symbol}${CurrencyHelper.format(widget.goal.targetAmount)}',
             valueColor: AppTheme.primary,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _DetailCard(
+            label: 'Goal Target',
+            value:
+                '${CurrencyHelper.symbol}${CurrencyHelper.format(widget.goal.targetAmount)}',
+            valueColor: AppTheme.onSurface,
+          ),
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: _DetailCard(
             label: 'Time Taken',
-            value: '$monthsTaken Month${monthsTaken > 1 ? 's' : ''}',
-            valueColor: AppTheme.primary,
+            value: '$monthsTaken Mo',
+            valueColor: AppTheme.mintAccent,
           ),
         ),
       ],
@@ -242,34 +262,38 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
 
   Widget _buildSocialProof() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppTheme.secondaryContainer.withValues(alpha: 0.3),
+        color: AppTheme.mint.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(50),
         border: Border.all(
-          color: AppTheme.secondary.withValues(alpha: 0.2),
-          width: 1,
+          color: AppTheme.mintAccent.withValues(alpha: 0.3),
+          width: 0.8,
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.trending_up_rounded, color: AppTheme.secondary, size: 20),
+          const Icon(
+            CupertinoIcons.checkmark_seal_fill,
+            color: AppTheme.primary,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Flexible(
             child: RichText(
               text: TextSpan(
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  color: AppTheme.onSecondaryContainer,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: AppTheme.onSurface,
                 ),
-                children: [
-                  const TextSpan(text: 'You are now in the '),
-                  const TextSpan(
-                    text: 'top 5% of savers',
+                children: const [
+                  TextSpan(text: 'Outstanding discipline! You have funded '),
+                  TextSpan(
+                    text: '100% of your savings target',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const TextSpan(text: ' this month!'),
+                  TextSpan(text: ' for this goal.'),
                 ],
               ),
             ),
@@ -280,50 +304,62 @@ class _GoalAchievedScreenState extends State<GoalAchievedScreen>
   }
 
   Widget _buildActions() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: SizedBox(
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/goals');
-              },
-              icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-              label: Text(
-                'View All Goals',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: CupertinoButton(
+            color: AppTheme.primary,
+            borderRadius: BorderRadius.circular(24),
+            padding: EdgeInsets.zero,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  CupertinoIcons.square_list,
+                  color: Colors.white,
+                  size: 18,
                 ),
-              ),
+                const SizedBox(width: 8),
+                Text(
+                  'Back to Goals',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: SizedBox(
-            height: 52,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/add_goal');
-              },
-              icon: const Icon(Icons.add_rounded, size: 20),
-              label: Text(
-                'Start New Goal',
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.secondary,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppTheme.secondary, width: 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: CupertinoButton(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            padding: EdgeInsets.zero,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                CupertinoPageRoute(builder: (_) => const AddGoalScreen()),
+              );
+            },
+            child: Text(
+              'Create Another Goal',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
               ),
             ),
           ),
@@ -347,33 +383,31 @@ class _DetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.outlineVariant, width: 1),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+      decoration: AppTheme.iosCardDecoration,
       child: Column(
         children: [
           Text(
             label.toUpperCase(),
-            style: GoogleFonts.inter(
-              fontSize: 10,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 9,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.05,
-              color: AppTheme.outline,
+              letterSpacing: 0.6,
+              color: AppTheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             value,
             style: GoogleFonts.jetBrainsMono(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
               color: valueColor,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

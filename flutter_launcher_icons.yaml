@@ -1,0 +1,13 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/sajilo_khata_logo.png"
+
+  android: "launcher_icon"
+  min_sdk_android: 21
+  adaptive_icon_background: "#F4F6F2"
+  adaptive_icon_foreground: "assets/sajilo_khata_logo.png"
+  adaptive_icon_foreground_inset: 16
+
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#F4F6F2"

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../../domain/entities/goal.dart';
 import '../screens/splash/splash_imports.dart';
 import '../screens/auth/auth_imports.dart';
@@ -13,35 +13,47 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return CupertinoPageRoute(builder: (_) => const SplashScreen());
       case '/login':
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return CupertinoPageRoute(builder: (_) => const LoginScreen());
       case '/signup':
-        return MaterialPageRoute(builder: (_) => const SignupScreen());
+        return CupertinoPageRoute(builder: (_) => const SignupScreen());
       case '/home':
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return CupertinoPageRoute(builder: (_) => const HomeScreen());
       case '/dashboard':
-        return MaterialPageRoute(builder: (_) => const DashboardScreen());
+        return CupertinoPageRoute(builder: (_) => const DashboardScreen());
       case '/profile':
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+        return CupertinoPageRoute(builder: (_) => const ProfileScreen());
       case '/sms_settings':
-        return MaterialPageRoute(builder: (_) => const SmsSettingsScreen());
+        return CupertinoPageRoute(builder: (_) => const SmsSettingsScreen());
       case '/transactions':
-        return MaterialPageRoute(builder: (_) => const TransactionListScreen());
+        return CupertinoPageRoute(
+          builder: (_) => const TransactionListScreen(),
+        );
       case '/add_transaction':
-        return MaterialPageRoute(builder: (_) => const AddTransactionScreen());
+        return CupertinoPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => const AddTransactionScreen(),
+        );
       case '/goals':
-        return MaterialPageRoute(builder: (_) => const GoalsListScreen());
+        return CupertinoPageRoute(builder: (_) => const GoalsListScreen());
       case '/add_goal':
-        return MaterialPageRoute(builder: (_) => const AddGoalScreen());
+        return CupertinoPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => const AddGoalScreen(),
+        );
       case '/goal_detail':
         final goal = settings.arguments as Goal;
-        return MaterialPageRoute(builder: (_) => GoalDetailScreen(initialGoal: goal));
+        return CupertinoPageRoute(
+          builder: (_) => GoalDetailScreen(initialGoal: goal),
+        );
       case '/goal_achieved':
         final goal = settings.arguments as Goal;
-        return MaterialPageRoute(builder: (_) => GoalAchievedScreen(goal: goal));
+        return CupertinoPageRoute(
+          builder: (_) => GoalAchievedScreen(goal: goal),
+        );
       default:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+        return CupertinoPageRoute(builder: (_) => const SplashScreen());
     }
   }
 }

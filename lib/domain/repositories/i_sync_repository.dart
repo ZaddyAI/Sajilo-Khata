@@ -5,6 +5,7 @@ abstract class SyncRepository {
   Future<bool> get isOnline;
   Stream<bool> get connectivityStream;
   bool get hasPendingSync;
+  int get pendingSyncCount;
   Future<void> init();
   void dispose();
 }

@@ -1,4 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_theme.dart';
 
 class AuthFieldLabel extends StatelessWidget {
@@ -8,12 +11,11 @@ class AuthFieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     label,
-    style: const TextStyle(
-      fontFamily: 'Inter',
-      fontSize: 12,
+    style: GoogleFonts.plusJakartaSans(
+      fontSize: 11,
       fontWeight: FontWeight.w700,
-      letterSpacing: 0.05,
-      color: AppTheme.onSurface,
+      letterSpacing: 0.8,
+      color: AppTheme.onSurfaceVariant,
     ),
   );
 }
@@ -25,37 +27,38 @@ class AuthErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: AppTheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
+        color: AppTheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppTheme.error.withValues(alpha: 0.2),
-          width: 1,
+          color: AppTheme.expense.withValues(alpha: 0.25),
+          width: 0.8,
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppTheme.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
+              color: AppTheme.expense.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
-              Icons.error_outline_rounded,
-              color: AppTheme.error,
+              CupertinoIcons.exclamationmark_circle,
+              color: AppTheme.expense,
               size: 16,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.error,
-                fontWeight: FontWeight.w500,
+              style: GoogleFonts.plusJakartaSans(
+                color: AppTheme.expense,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
           ),
@@ -79,32 +82,40 @@ class AuthPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 54,
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppTheme.pillRadius),
+        boxShadow: AppTheme.buttonShadow,
+      ),
       child: ElevatedButton(
-        onPressed: loading ? null : onPressed,
+        onPressed: loading
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppTheme.primary,
-          foregroundColor: AppTheme.onPrimary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          foregroundColor: Colors.white,
+          shape: const StadiumBorder(),
           elevation: 0,
         ),
         child: loading
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(
+                child: CupertinoActivityIndicator(
                   color: Colors.white,
-                  strokeWidth: 2,
+                  radius: 9,
                 ),
               )
             : Text(
                 label,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
+                  letterSpacing: 0.2,
                   color: Colors.white,
                 ),
               ),
@@ -121,19 +132,22 @@ class AuthOrDivider extends StatelessWidget {
     return Row(
       children: [
         const Expanded(
-          child: Divider(thickness: 1, color: AppTheme.outlineVariant),
+          child: Divider(thickness: 0.8, color: AppTheme.outlineVariant),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
-            'or',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: AppTheme.outlineVariant),
+            'OR',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+              color: AppTheme.onSurfaceVariant,
+            ),
           ),
         ),
         const Expanded(
-          child: Divider(thickness: 1, color: AppTheme.outlineVariant),
+          child: Divider(thickness: 0.8, color: AppTheme.outlineVariant),
         ),
       ],
     );
@@ -153,14 +167,20 @@ class AuthGoogleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 54,
+      height: 52,
       child: OutlinedButton(
-        onPressed: loading ? null : onPressed,
+        onPressed: loading
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              },
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          side: const BorderSide(color: AppTheme.outlineVariant, width: 1.5),
+          shape: const StadiumBorder(),
+          side: const BorderSide(color: AppTheme.outlineVariant, width: 1.0),
           foregroundColor: AppTheme.onSurface,
           backgroundColor: Colors.white,
+          elevation: 0,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -176,9 +196,9 @@ class AuthGoogleButton extends StatelessWidget {
               child: const Text(
                 'G',
                 style: TextStyle(
-                  fontFamily: 'Inter',
+                  fontFamily: 'Plus Jakarta Sans',
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: Color(0xFF4285F4),
                   letterSpacing: 0,
                 ),
@@ -187,9 +207,11 @@ class AuthGoogleButton extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               'Continue with Google',
-              style: Theme.of(
-                context,
-              ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.onSurface,
+              ),
             ),
           ],
         ),
@@ -213,31 +235,34 @@ class AuthGuestButton extends StatelessWidget {
     return SizedBox(
       height: 52,
       child: OutlinedButton(
-        onPressed: loading ? null : onPressed,
+        onPressed: loading
+            ? null
+            : () {
+                HapticFeedback.lightImpact();
+                onPressed();
+              },
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          side: BorderSide(
-            color: AppTheme.secondary.withValues(alpha: 0.5),
-            width: 1.5,
-          ),
-          foregroundColor: AppTheme.secondary,
-          backgroundColor: AppTheme.secondary.withValues(alpha: 0.06),
+          shape: const StadiumBorder(),
+          side: const BorderSide(color: AppTheme.mintAccent, width: 1.0),
+          foregroundColor: AppTheme.primaryDark,
+          backgroundColor: AppTheme.mint,
+          elevation: 0,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.offline_pin_outlined,
-              size: 20,
-              color: AppTheme.secondary,
+              CupertinoIcons.checkmark_shield,
+              size: 18,
+              color: AppTheme.primaryDark,
             ),
             const SizedBox(width: 10),
             Text(
               'Continue as Guest (Offline)',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppTheme.secondary,
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryDark,
               ),
             ),
           ],

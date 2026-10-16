@@ -4,8 +4,20 @@ class EditContributionUsecase {
   final GoalRepository _repository;
   EditContributionUsecase(this._repository);
 
-  Future<String?> call(String goalId, String contributionId, double oldAmount, double newAmount) async {
-    final result = await _repository.editContribution(goalId, contributionId, oldAmount, newAmount);
+  Future<String?> call(
+    String goalId,
+    String contributionId,
+    double oldAmount,
+    double newAmount, {
+    DateTime? newDate,
+  }) async {
+    final result = await _repository.editContribution(
+      goalId,
+      contributionId,
+      oldAmount,
+      newAmount,
+      newDate: newDate,
+    );
     return result.error;
   }
 }

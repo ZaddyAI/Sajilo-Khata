@@ -30,7 +30,7 @@ class _SignupScreenState extends State<SignupScreen>
     );
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.06),
+      begin: const Offset(0, 0.04),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
@@ -50,402 +50,490 @@ class _SignupScreenState extends State<SignupScreen>
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthAuthenticated) Navigator.of(context).pop();
+        if (state is AuthAuthenticated) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           final isLoading = state is AuthLoading;
 
           return Scaffold(
-            // Stitch: bg-surface (light page)
-            backgroundColor: AppTheme.surface,
+            backgroundColor: AppTheme.background,
             resizeToAvoidBottomInset: true,
             body: Stack(
               children: [
-                // Atmospheric background blobs
                 Positioned(
-                  top: -MediaQuery.of(context).size.height * 0.25,
-                  left: -MediaQuery.of(context).size.width * 0.25,
+                  top: -100,
+                  left: -80,
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: 260,
+                    height: 260,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppTheme.primary.withValues(alpha: 0.05),
+                      color: AppTheme.mint.withValues(alpha: 0.35),
                     ),
                   ),
                 ),
                 Positioned(
-                  bottom: -MediaQuery.of(context).size.height * 0.25,
-                  right: -MediaQuery.of(context).size.width * 0.25,
+                  bottom: -80,
+                  right: -80,
                   child: Container(
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    height: MediaQuery.of(context).size.height * 0.5,
+                    width: 240,
+                    height: 240,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppTheme.secondary.withValues(alpha: 0.05),
+                      color: AppTheme.mintAccent.withValues(alpha: 0.2),
                     ),
                   ),
                 ),
 
                 // Main content
                 SafeArea(
-                  child: FadeTransition(
-                    opacity: _fadeAnim,
-                    child: SlideTransition(
-                      position: _slideAnim,
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 24,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 440),
-                          child: Column(
-                            children: [
-                              // Mobile branding top (matching Stitch: lg:hidden)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.account_balance_rounded,
-                                    color: AppTheme.primary,
-                                    size: 28,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Sajilo Khata',
-                                    style: GoogleFonts.manrope(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.primary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 28),
-
-                              // Heading
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Create Account',
-                                    style: GoogleFonts.manrope(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.onSurface,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Start managing your business records systematically.',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: AppTheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 24),
-
-                              // Registration Card
-                              Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.surfaceContainerLowest,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppTheme.outlineVariant,
-                                    width: 1,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.06,
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
+                      child: FadeTransition(
+                        opacity: _fadeAnim,
+                        child: SlideTransition(
+                          position: _slideAnim,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 420),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Top Back Button row
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    minSize: 36,
+                                    onPressed: () {
+                                      HapticFeedback.lightImpact();
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
                                       ),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                child: IgnorePointer(
-                                  ignoring: isLoading,
-                                  child: AnimatedOpacity(
-                                    opacity: isLoading ? 0.6 : 1.0,
-                                    duration: const Duration(milliseconds: 200),
-                                    child: Form(
-                                      key: _formKey,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: AppTheme.outlineVariant,
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          if (state is AuthFailure)
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 16,
-                                              ),
-                                              child: AuthErrorBanner(
-                                                message: state.message,
-                                              ),
+                                          const Icon(
+                                            CupertinoIcons.chevron_back,
+                                            size: 16,
+                                            color: AppTheme.onSurface,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Back',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppTheme.onSurface,
                                             ),
-
-                                          // FULL NAME
-                                          _FieldLabel(label: 'FULL NAME'),
-                                          const SizedBox(height: 6),
-                                          TextFormField(
-                                            controller: _nameController,
-                                            textCapitalization:
-                                                TextCapitalization.words,
-                                            textInputAction:
-                                                TextInputAction.next,
-                                            decoration: const InputDecoration(
-                                              hintText: 'John Doe',
-                                              prefixIcon: Icon(
-                                                Icons.person_outline_rounded,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            validator: (v) {
-                                              if (v == null ||
-                                                  v.trim().isEmpty) {
-                                                return 'Enter your name';
-                                              }
-                                              return null;
-                                            },
-                                          ),
-
-                                          const SizedBox(height: 16),
-
-                                          // EMAIL ADDRESS
-                                          _FieldLabel(label: 'EMAIL ADDRESS'),
-                                          const SizedBox(height: 6),
-                                          TextFormField(
-                                            controller: _emailController,
-                                            keyboardType:
-                                                TextInputType.emailAddress,
-                                            textInputAction:
-                                                TextInputAction.next,
-                                            decoration: const InputDecoration(
-                                              hintText: 'name@company.com',
-                                              prefixIcon: Icon(
-                                                Icons.mail_outline_rounded,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            validator: (v) {
-                                              if (v == null || v.isEmpty) {
-                                                return 'Enter your email';
-                                              }
-                                              if (!v.contains('@')) {
-                                                return 'Invalid email';
-                                              }
-                                              return null;
-                                            },
-                                          ),
-
-                                          const SizedBox(height: 16),
-
-                                          // Password row (2 columns in Stitch)
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    _FieldLabel(
-                                                      label: 'PASSWORD',
-                                                    ),
-                                                    const SizedBox(height: 6),
-                                                    TextFormField(
-                                                      controller:
-                                                          _passwordController,
-                                                      obscureText:
-                                                          _obscurePassword,
-                                                      textInputAction:
-                                                          TextInputAction.next,
-                                                      decoration: InputDecoration(
-                                                        hintText: '••••••••',
-                                                        prefixIcon: const Icon(
-                                                          Icons
-                                                              .lock_outline_rounded,
-                                                          size: 20,
-                                                        ),
-                                                        suffixIcon: GestureDetector(
-                                                          onTap: () => setState(
-                                                            () => _obscurePassword =
-                                                                !_obscurePassword,
-                                                          ),
-                                                          child: Icon(
-                                                            _obscurePassword
-                                                                ? Icons
-                                                                      .visibility_outlined
-                                                                : Icons
-                                                                      .visibility_off_outlined,
-                                                            color: AppTheme
-                                                                .onSurfaceVariant,
-                                                            size: 18,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      validator: (v) {
-                                                        if (v == null ||
-                                                            v.isEmpty) {
-                                                          return 'Required';
-                                                        }
-                                                        if (v.length < 6) {
-                                                          return 'Min 6 chars';
-                                                        }
-                                                        return null;
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    _FieldLabel(
-                                                      label: 'CONFIRM',
-                                                    ),
-                                                    const SizedBox(height: 6),
-                                                    TextFormField(
-                                                      controller:
-                                                          _confirmController,
-                                                      obscureText:
-                                                          _obscureConfirm,
-                                                      textInputAction:
-                                                          TextInputAction.done,
-                                                      onFieldSubmitted: (_) =>
-                                                          _signUp(),
-                                                      decoration: InputDecoration(
-                                                        hintText: '••••••••',
-                                                        prefixIcon: const Icon(
-                                                          Icons.shield_outlined,
-                                                          size: 20,
-                                                        ),
-                                                        suffixIcon: GestureDetector(
-                                                          onTap: () => setState(
-                                                            () => _obscureConfirm =
-                                                                !_obscureConfirm,
-                                                          ),
-                                                          child: Icon(
-                                                            _obscureConfirm
-                                                                ? Icons
-                                                                      .visibility_outlined
-                                                                : Icons
-                                                                      .visibility_off_outlined,
-                                                            color: AppTheme
-                                                                .onSurfaceVariant,
-                                                            size: 18,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      validator: (v) {
-                                                        if (v !=
-                                                            _passwordController
-                                                                .text) {
-                                                          return 'No match';
-                                                        }
-                                                        return null;
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          const SizedBox(height: 24),
-
-                                          // Sign Up button
-                                          AuthPrimaryButton(
-                                            label: 'Sign Up',
-                                            loading: isLoading,
-                                            onPressed: _signUp,
-                                          ),
-
-                                          const SizedBox(height: 16),
-
-                                          // OR divider
-                                          const AuthOrDivider(),
-
-                                          const SizedBox(height: 16),
-
-                                          // Already have an account?
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                'Already have an account? ',
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 14,
-                                                  color:
-                                                      AppTheme.onSurfaceVariant,
-                                                ),
-                                              ),
-                                              GestureDetector(
-                                                onTap: () =>
-                                                    Navigator.pop(context),
-                                                child: Text(
-                                                  'Login',
-                                                  style: GoogleFonts.inter(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppTheme.primary,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(height: 12),
 
-                              const SizedBox(height: 24),
+                                // Brand Header
+                                Container(
+                                  width: 64,
+                                  height: 64,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: AppTheme.outlineVariant,
+                                      width: 0.8,
+                                    ),
+                                    boxShadow: AppTheme.cardShadow,
+                                  ),
+                                  child: Image.asset(
+                                    'assets/sajilo_khata_logo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Create Account',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                    color: AppTheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Begin your mindful financial journey today',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: AppTheme.onSurfaceVariant,
+                                  ),
+                                ),
 
-                              // "A Product of" footer
-                              Opacity(
-                                opacity: 0.6,
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      'A PRODUCT OF',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 2.0,
-                                        color: AppTheme.outline,
+                                const SizedBox(height: 20),
+
+                                // Form Card
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(22),
+                                  decoration: AppTheme.iosCardDecoration,
+                                  child: IgnorePointer(
+                                    ignoring: isLoading,
+                                    child: AnimatedOpacity(
+                                      opacity: isLoading ? 0.6 : 1.0,
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      child: Form(
+                                        key: _formKey,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            if (state is AuthFailure)
+                                              AuthErrorBanner(
+                                                message: state.message,
+                                              ),
+
+                                            // FULL NAME
+                                            Text(
+                                              'FULL NAME',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    letterSpacing: 0.8,
+                                                    color: AppTheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            TextFormField(
+                                              controller: _nameController,
+                                              textCapitalization:
+                                                  TextCapitalization.words,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppTheme.onSurface,
+                                                  ),
+                                              decoration: const InputDecoration(
+                                                hintText: 'John Doe',
+                                                prefixIcon: Icon(
+                                                  CupertinoIcons.person,
+                                                  size: 18,
+                                                  color:
+                                                      AppTheme.onSurfaceVariant,
+                                                ),
+                                              ),
+                                              validator: (v) {
+                                                if (v == null ||
+                                                    v.trim().isEmpty) {
+                                                  return 'Enter your full name';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            const SizedBox(height: 14),
+
+                                            // EMAIL ADDRESS
+                                            Text(
+                                              'EMAIL ADDRESS',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    letterSpacing: 0.8,
+                                                    color: AppTheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            TextFormField(
+                                              controller: _emailController,
+                                              keyboardType:
+                                                  TextInputType.emailAddress,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppTheme.onSurface,
+                                                  ),
+                                              decoration: const InputDecoration(
+                                                hintText: 'name@company.com',
+                                                prefixIcon: Icon(
+                                                  CupertinoIcons.mail,
+                                                  size: 18,
+                                                  color:
+                                                      AppTheme.onSurfaceVariant,
+                                                ),
+                                              ),
+                                              validator: (v) {
+                                                if (v == null || v.isEmpty) {
+                                                  return 'Enter your email';
+                                                }
+                                                if (!v.contains('@')) {
+                                                  return 'Invalid email format';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            const SizedBox(height: 14),
+
+                                            // Passwords
+                                            Text(
+                                              'PASSWORD',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    letterSpacing: 0.8,
+                                                    color: AppTheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            TextFormField(
+                                              controller: _passwordController,
+                                              obscureText: _obscurePassword,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppTheme.onSurface,
+                                                  ),
+                                              decoration: InputDecoration(
+                                                hintText: '••••••••',
+                                                prefixIcon: const Icon(
+                                                  CupertinoIcons.lock,
+                                                  size: 18,
+                                                  color:
+                                                      AppTheme.onSurfaceVariant,
+                                                ),
+                                                suffixIcon: GestureDetector(
+                                                  onTap: () => setState(
+                                                    () => _obscurePassword =
+                                                        !_obscurePassword,
+                                                  ),
+                                                  child: Icon(
+                                                    _obscurePassword
+                                                        ? CupertinoIcons.eye
+                                                        : CupertinoIcons
+                                                              .eye_slash,
+                                                    color: AppTheme
+                                                        .onSurfaceVariant,
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                              validator: (v) {
+                                                if (v == null || v.isEmpty) {
+                                                  return 'Create a password';
+                                                }
+                                                if (v.length < 6) {
+                                                  return 'At least 6 characters';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            const SizedBox(height: 14),
+
+                                            Text(
+                                              'CONFIRM PASSWORD',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                    letterSpacing: 0.8,
+                                                    color: AppTheme
+                                                        .onSurfaceVariant,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            TextFormField(
+                                              controller: _confirmController,
+                                              obscureText: _obscureConfirm,
+                                              textInputAction:
+                                                  TextInputAction.done,
+                                              onFieldSubmitted: (_) =>
+                                                  _signUp(),
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppTheme.onSurface,
+                                                  ),
+                                              decoration: InputDecoration(
+                                                hintText: '••••••••',
+                                                prefixIcon: const Icon(
+                                                  CupertinoIcons.shield,
+                                                  size: 18,
+                                                  color:
+                                                      AppTheme.onSurfaceVariant,
+                                                ),
+                                                suffixIcon: GestureDetector(
+                                                  onTap: () => setState(
+                                                    () => _obscureConfirm =
+                                                        !_obscureConfirm,
+                                                  ),
+                                                  child: Icon(
+                                                    _obscureConfirm
+                                                        ? CupertinoIcons.eye
+                                                        : CupertinoIcons
+                                                              .eye_slash,
+                                                    color: AppTheme
+                                                        .onSurfaceVariant,
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                              validator: (v) {
+                                                if (v !=
+                                                    _passwordController.text) {
+                                                  return 'Passwords do not match';
+                                                }
+                                                return null;
+                                              },
+                                            ),
+
+                                            const SizedBox(height: 22),
+
+                                            // Sign Up button
+                                            AuthPrimaryButton(
+                                              label: 'Create Account',
+                                              loading: isLoading,
+                                              onPressed: _signUp,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          'assets/redpixellabs.png',
-                                          width: 80,
-                                          fit: BoxFit.contain,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // Already have an account?
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Already have an account? ',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        color: AppTheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        HapticFeedback.lightImpact();
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        'Sign In',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.primary,
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-
-                              const SizedBox(height: 24),
-                            ],
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final uri = Uri.parse(
+                                          AppConstants.privacyPolicyUrl,
+                                        );
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(
+                                            uri,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        }
+                                      },
+                                      child: Text(
+                                        'Privacy Policy',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
+                                      child: Text(
+                                        '•',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          color: AppTheme.outlineVariant,
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final uri = Uri.parse(
+                                          AppConstants.termsOfServiceUrl,
+                                        );
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(
+                                            uri,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        }
+                                      },
+                                      child: Text(
+                                        'Terms of Service',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -461,6 +549,7 @@ class _SignupScreenState extends State<SignupScreen>
   }
 
   void _signUp() {
+    HapticFeedback.lightImpact();
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
         AuthEmailSignUpRequested(
@@ -470,24 +559,5 @@ class _SignupScreenState extends State<SignupScreen>
         ),
       );
     }
-  }
-}
-
-// Simple label widget matching Stitch's label-bold uppercase tracking-wider
-class _FieldLabel extends StatelessWidget {
-  final String label;
-  const _FieldLabel({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: GoogleFonts.inter(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.8,
-        color: AppTheme.onSurfaceVariant,
-      ),
-    );
   }
 }
